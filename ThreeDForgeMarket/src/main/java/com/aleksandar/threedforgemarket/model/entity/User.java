@@ -53,4 +53,9 @@ public class User {
             createdOn = LocalDateTime.now();
         }
     }
+
+    public void addOrder(CustomerOrder order) {
+        orders.add(order);
+        order.setCustomer(this);
+    }
 }
