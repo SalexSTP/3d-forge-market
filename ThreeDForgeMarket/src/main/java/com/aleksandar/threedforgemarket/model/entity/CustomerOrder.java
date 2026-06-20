@@ -1,6 +1,6 @@
 package com.aleksandar.threedforgemarket.model.entity;
 
-import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
+import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,35 +18,42 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "products")
-public class Product {
+@Table(name = "customer_orders")
+public class CustomerOrder {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
-    @Column(nullable = false, length = 1000)
-    private String description;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private User customer;
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false, length = 50)
+    private String material;
+
+    @Column(nullable = false, length = 50)
+    private String color;
+
+    @Column(nullable = false, length = 255)
+    private String deliveryAddress;
+
+    @Column(length = 1000)
+    private String customerNote;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal price;
-
-    @Column(nullable = false, length = 500)
-    private String imageUrl;
-
-    @Column(length = 500)
-    private String modelUrl;
-
-    private Integer estimatedPrintTimeMinutes;
+    private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private ProductCategory productCategory;
-
-    @Column(nullable = false)
-    private boolean available;
+    private OrderStatus status;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
@@ -60,6 +67,10 @@ public class Product {
 
         if (createdOn == null) {
             createdOn = now;
+        }
+
+        if (status == null) {
+            status = OrderStatus.PENDING;
         }
 
         updatedOn = now;
