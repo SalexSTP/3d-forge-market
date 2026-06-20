@@ -42,11 +42,12 @@ public class Product {
     private Integer estimatedPrintTimeMinutes;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private ProductCategory productCategory;
 
+    @Builder.Default
     @Column(nullable = false)
-    private boolean available;
+    private boolean available = true;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;

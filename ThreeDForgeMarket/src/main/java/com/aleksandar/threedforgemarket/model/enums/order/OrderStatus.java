@@ -9,7 +9,7 @@ public enum OrderStatus {
     PRINTING("Printing"),
     READY_FOR_DELIVERY("Ready For Delivery"),
     DELIVERED("Delivered"),
-    CANCELLED("Cancelled"),;
+    CANCELLED("Cancelled");
 
     private final String displayName;
 

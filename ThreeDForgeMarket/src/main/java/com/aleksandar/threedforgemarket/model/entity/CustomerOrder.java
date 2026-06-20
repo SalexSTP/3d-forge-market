@@ -52,7 +52,7 @@ public class CustomerOrder {
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private OrderStatus status;
 
     @Column(nullable = false, updatable = false)
