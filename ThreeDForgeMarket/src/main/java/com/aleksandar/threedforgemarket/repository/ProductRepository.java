@@ -29,4 +29,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     List<Product> findTop3ByAvailableTrueOrderByCreatedOnDesc();
 
     Optional<Product> findByIdAndAvailableTrue(UUID id);
+
+    List<Product> findAllByOrderByCreatedOnDesc();
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 }

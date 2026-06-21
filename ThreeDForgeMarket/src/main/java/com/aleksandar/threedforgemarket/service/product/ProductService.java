@@ -1,9 +1,11 @@
 package com.aleksandar.threedforgemarket.service.product;
 
+import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.ProductMapper;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductCatalogItemDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
+import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import com.aleksandar.threedforgemarket.repository.ProductRepository;
@@ -15,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
@@ -75,5 +76,82 @@ public class ProductService {
                 .stream()
                 .map(productMapper::toCatalogItemDto)
                 .toList();
+    }
+
+    public List<ProductCatalogItemDto> getAllProductsForAdmin() {
+        return productRepository.findAllByOrderByCreatedOnDesc()
+                .stream()
+                .map(productMapper::toCatalogItemDto)
+                .toList();
+    }
+
+    public ProductFormDto getProductForm(UUID productId) {
+        Product product = findProductById(productId);
+
+        return productMapper.toFormDto(product);
+    }
+
+    @Transactional
+    public void saveProduct(ProductFormDto productForm) {
+        if (productForm.getId() == null) {
+            createProduct(productForm);
+            return;
+        }
+
+        updateProduct(productForm);
+    }
+
+    @Transactional
+    public void toggleProductAvailability(UUID productId) {
+        Product product = findProductById(productId);
+
+        product.setAvailable(!product.isAvailable());
+
+        productRepository.save(product);
+    }
+
+    @Transactional
+    public void deleteProduct(UUID productId) {
+        Product product = findProductById(productId);
+
+        productRepository.delete(product);
+    }
+
+    private void createProduct(ProductFormDto productForm) {
+        validateProductName(productForm.getName(), null);
+
+        Product product = productMapper.toEntity(productForm);
+
+        productRepository.save(product);
+    }
+
+    private void updateProduct(ProductFormDto productForm) {
+        Product product = findProductById(productForm.getId());
+
+        validateProductName(productForm.getName(), product.getId());
+
+        productMapper.updateEntity(product, productForm);
+
+        productRepository.save(product);
+    }
+
+    private Product findProductById(UUID productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+    }
+
+    private void validateProductName(String productName, UUID currentProductId) {
+        String normalizedProductName = productName.strip();
+
+        boolean nameAlreadyExists = currentProductId == null
+                ? productRepository.existsByNameIgnoreCase(normalizedProductName)
+                : productRepository.existsByNameIgnoreCaseAndIdNot(
+                normalizedProductName,
+                currentProductId
+        );
+
+        if (nameAlreadyExists) {
+            throw new ProductNameAlreadyExistsException(normalizedProductName);
+        }
     }
 }
