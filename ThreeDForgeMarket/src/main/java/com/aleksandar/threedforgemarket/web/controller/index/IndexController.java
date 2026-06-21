@@ -18,7 +18,7 @@ public class IndexController {
         ModelAndView modelAndView = new ModelAndView("index");
 
         modelAndView.addObject(
-                "feauredProducts",
+                "featuredProducts",
                 productService.getFeaturedProducts()
         );
 
