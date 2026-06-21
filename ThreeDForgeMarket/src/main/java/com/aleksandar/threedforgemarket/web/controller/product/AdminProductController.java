@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Controller
@@ -25,13 +26,38 @@ public class AdminProductController {
     }
 
     @GetMapping
-    public ModelAndView getProductManagementPage() {
+    public ModelAndView getProductManagementPage(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false) PrintMaterial material,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String availability
+    ) {
         ModelAndView modelAndView = new ModelAndView("admin/products");
+
+        Boolean available = resolveAvailability(availability);
 
         modelAndView.addObject(
                 "products",
-                productService.getAllProductsForAdmin()
+                productService.getAllProductsForAdmin(
+                        search,
+                        category,
+                        material,
+                        minPrice,
+                        maxPrice,
+                        available
+                )
         );
+
+        modelAndView.addObject("categories", ProductCategory.values());
+        modelAndView.addObject("materials", PrintMaterial.values());
+        modelAndView.addObject("search", search);
+        modelAndView.addObject("selectedCategory", category);
+        modelAndView.addObject("selectedMaterial", material);
+        modelAndView.addObject("minPrice", minPrice);
+        modelAndView.addObject("maxPrice", maxPrice);
+        modelAndView.addObject("availability", availability);
 
         return modelAndView;
     }
@@ -153,5 +179,17 @@ public class AdminProductController {
         modelAndView.addObject("materials", PrintMaterial.values());
 
         return modelAndView;
+    }
+
+    private Boolean resolveAvailability(String availability) {
+        if ("available".equals(availability)) {
+            return true;
+        }
+
+        if ("hidden".equals(availability)) {
+            return false;
+        }
+
+        return null;
     }
 }

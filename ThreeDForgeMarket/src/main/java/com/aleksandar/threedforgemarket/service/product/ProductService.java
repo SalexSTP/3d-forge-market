@@ -7,12 +7,14 @@ import com.aleksandar.threedforgemarket.model.dto.product.ProductCatalogItemDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
 import com.aleksandar.threedforgemarket.model.entity.Product;
+import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import com.aleksandar.threedforgemarket.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,8 +80,26 @@ public class ProductService {
                 .toList();
     }
 
-    public List<ProductCatalogItemDto> getAllProductsForAdmin() {
-        return productRepository.findAllByOrderByCreatedOnDesc()
+    public List<ProductCatalogItemDto> getAllProductsForAdmin(
+            String search,
+            ProductCategory category,
+            PrintMaterial material,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Boolean available
+    ) {
+        String normalizedSearch = StringUtils.hasText(search)
+                ? search.trim()
+                : null;
+
+        return productRepository.findAllForAdmin(
+                        normalizedSearch,
+                        category,
+                        material,
+                        minPrice,
+                        maxPrice,
+                        available
+                )
                 .stream()
                 .map(productMapper::toCatalogItemDto)
                 .toList();

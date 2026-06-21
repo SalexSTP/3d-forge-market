@@ -19,7 +19,88 @@
 
     <div th:replace="~{fragments/messages :: messages}"></div>
 
-    <section class="responsive-table" th:if="${products != null and !#lists.isEmpty(products)}">
+    <section class="catalog-tools admin-filter-tools">
+        <button class="btn btn-filter" type="button" aria-expanded="false" aria-controls="admin-product-filter-panel">
+            Search and filter
+        </button>
+
+        <form id="admin-product-filter-panel"
+              class="filter-bar admin-filter-bar is-collapsed"
+              th:action="@{/admin/products}"
+              method="get">
+            <div class="field">
+                <label for="search">Search</label>
+                <input id="search"
+                       name="search"
+                       type="search"
+                       th:value="${search}"
+                       maxlength="100"
+                       placeholder="Product name">
+            </div>
+
+            <div class="field">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="">All categories</option>
+                    <option th:each="category : ${categories}"
+                            th:value="${category}"
+                            th:text="${category.displayName}"
+                            th:selected="${category == selectedCategory}">
+                        Accessory
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="material">Material</label>
+                <select id="material" name="material">
+                    <option value="">All materials</option>
+                    <option th:each="material : ${materials}"
+                            th:value="${material}"
+                            th:text="${material.displayName}"
+                            th:selected="${material == selectedMaterial}">
+                        PLA
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="minPrice">Min price</label>
+                <input id="minPrice"
+                       name="minPrice"
+                       type="number"
+                       min="0"
+                       step="0.01"
+                       th:value="${minPrice}"
+                       placeholder="0.00">
+            </div>
+
+            <div class="field">
+                <label for="maxPrice">Max price</label>
+                <input id="maxPrice"
+                       name="maxPrice"
+                       type="number"
+                       min="0"
+                       step="0.01"
+                       th:value="${maxPrice}"
+                       placeholder="50.00">
+            </div>
+
+            <div class="field">
+                <label for="availability">Availability</label>
+                <select id="availability" name="availability">
+                    <option value="">All products</option>
+                    <option value="available" th:selected="${availability == 'available'}">Visible only</option>
+                    <option value="hidden" th:selected="${availability == 'hidden'}">Hidden only</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-ghost" th:href="@{/admin/products}">Reset</a>
+        </form>
+    </section>
+
+    <section class="responsive-table admin-products-table" th:if="${products != null and !#lists.isEmpty(products)}">
         <table>
             <thead>
             <tr>
@@ -29,7 +110,7 @@
                 <th>Material</th>
                 <th>Price</th>
                 <th>Availability</th>
-                <th>Actions</th>
+                <th class="actions-column">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -39,7 +120,9 @@
                          th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
                          th:alt="${product.name}">
                 </td>
-                <td data-label="Name" th:text="${product.name}">Cable clip</td>
+                <td data-label="Name">
+                    <strong class="table-product-name" th:text="${product.name}">Cable clip</strong>
+                </td>
                 <td data-label="Category" th:text="${product.productCategory.displayName}">Accessory</td>
                 <td data-label="Material" th:text="${product.material.displayName}">PETG</td>
                 <td data-label="Price" th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€9.00</td>
@@ -48,13 +131,13 @@
                     <span class="status-badge status-hidden" th:if="${!product.available}">Hidden</span>
                 </td>
                 <td data-label="Actions">
-                    <div class="action-row compact">
-                        <a class="btn btn-small" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Edit</a>
+                    <div class="admin-actions">
+                        <a class="btn btn-small btn-edit" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Edit</a>
                         <form th:action="@{/admin/products/{id}/availability(id=${product.id})}"
                               method="post">
                             <input type="hidden" name="_method" value="put">
 
-                            <button class="btn btn-small btn-ghost"
+                            <button class="btn btn-small btn-toggle"
                                     type="submit"
                                     th:text="${product.available ? 'Hide' : 'Show'}">
                                 Hide
@@ -77,9 +160,49 @@
     </section>
 
     <section class="empty-state" th:if="${products == null or #lists.isEmpty(products)}">
-        <h2>No products created</h2>
-        <p>Create the first catalog item customers can order.</p>
-        <a class="btn btn-primary" th:href="@{/admin/products/new}">Create product</a>
+        <h2 th:text="${search != null
+            or selectedCategory != null
+            or selectedMaterial != null
+            or minPrice != null
+            or maxPrice != null
+            or availability != null
+            ? 'No products match these filters.'
+            : 'No products created yet.'}">
+            No products created yet.
+        </h2>
+
+        <p th:text="${search != null
+            or selectedCategory != null
+            or selectedMaterial != null
+            or minPrice != null
+            or maxPrice != null
+            or availability != null
+            ? 'Try adjusting or clearing the active filters.'
+            : 'Create the first catalog item customers can order.'}">
+            Create the first catalog item customers can order.
+        </p>
+
+        <a class="btn btn-primary"
+           th:if="${search == null
+            and selectedCategory == null
+            and selectedMaterial == null
+            and minPrice == null
+            and maxPrice == null
+            and availability == null}"
+           th:href="@{/admin/products/new}">
+            Create product
+        </a>
+
+        <a class="btn btn-ghost"
+           th:if="${search != null
+            or selectedCategory != null
+            or selectedMaterial != null
+            or minPrice != null
+            or maxPrice != null
+            or availability != null}"
+           th:href="@{/admin/products}">
+            Clear filters
+        </a>
     </section>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>

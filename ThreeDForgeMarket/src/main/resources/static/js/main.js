@@ -10,17 +10,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    var filterToggle = document.querySelector(".btn-filter");
-    var filterPanel = document.querySelector("#catalog-filter-panel");
+    document.querySelectorAll(".btn-filter[aria-controls]").forEach(function (filterToggle) {
+        var filterPanel = document.getElementById(filterToggle.getAttribute("aria-controls"));
 
-    if (filterToggle && filterPanel) {
+        if (!filterPanel) {
+            return;
+        }
+
         filterToggle.addEventListener("click", function () {
             var expanded = filterToggle.getAttribute("aria-expanded") === "true";
             filterToggle.setAttribute("aria-expanded", String(!expanded));
             filterPanel.classList.toggle("is-collapsed", expanded);
             filterToggle.classList.toggle("is-active", !expanded);
         });
-    }
+    });
 
     document.querySelectorAll(".media-tab").forEach(function (tab) {
         tab.addEventListener("click", function () {

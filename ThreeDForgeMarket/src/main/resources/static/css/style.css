@@ -717,6 +717,19 @@ dd {
     box-shadow: var(--shadow-sm);
 }
 
+.admin-filter-tools {
+    justify-items: stretch;
+}
+
+.admin-filter-tools .btn-filter {
+    justify-self: start;
+}
+
+.admin-filter-bar {
+    width: 100%;
+    grid-template-columns: minmax(180px, 1.3fr) repeat(3, minmax(140px, 1fr)) repeat(2, minmax(110px, 0.75fr)) auto auto;
+}
+
 .filter-bar.is-collapsed {
     display: none;
 }
@@ -1014,6 +1027,63 @@ tr:last-child td {
     background: var(--color-surface-strong);
 }
 
+.admin-products-table table {
+    min-width: 940px;
+}
+
+.admin-products-table th,
+.admin-products-table td {
+    vertical-align: middle;
+}
+
+.admin-products-table tbody tr {
+    transition: background 140ms ease;
+}
+
+.admin-products-table tbody tr:hover {
+    background: #fbfdff;
+}
+
+.actions-column {
+    width: 260px;
+}
+
+.table-product-name {
+    display: inline-block;
+    max-width: 260px;
+    color: var(--color-text);
+    line-height: 1.25;
+}
+
+.admin-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(68px, 1fr));
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.admin-actions form {
+    margin: 0;
+}
+
+.admin-actions .btn {
+    width: 100%;
+    min-height: 36px;
+    padding-inline: 0.6rem;
+}
+
+.btn-edit {
+    border-color: rgba(15, 118, 110, 0.24);
+    background: #e8f7f5;
+    color: var(--color-primary-dark);
+}
+
+.btn-toggle {
+    border-color: rgba(51, 65, 85, 0.18);
+    background: #f8fbfd;
+    color: var(--color-secondary);
+}
+
 .subtle {
     display: block;
     color: var(--color-muted);
@@ -1126,6 +1196,7 @@ tr:last-child td {
     }
 
     .filter-bar,
+    .admin-filter-bar,
     .form-grid {
         grid-template-columns: 1fr;
     }
@@ -1211,6 +1282,27 @@ tr:last-child td {
         content: attr(data-label);
         color: var(--color-muted);
         font-weight: 900;
+    }
+
+    .admin-products-table table {
+        min-width: 0;
+    }
+
+    .admin-products-table td[data-label="Actions"] {
+        display: block;
+    }
+
+    .admin-products-table td[data-label="Actions"]::before {
+        display: block;
+        margin-bottom: var(--space-sm);
+    }
+
+    .admin-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-actions .btn {
+        justify-content: center;
     }
 }
 
