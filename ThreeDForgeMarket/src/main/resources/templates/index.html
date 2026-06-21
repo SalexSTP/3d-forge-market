@@ -51,25 +51,30 @@
             <h2>Popular products</h2>
         </div>
 
-        <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
-            <article class="product-card" th:each="product : ${featuredProducts}">
+        <div class="product-grid featured-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+            <a class="product-card product-card-link"
+               th:each="product : ${featuredProducts}"
+               th:href="@{/products/{id}(id=${product.id})}">
                 <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
                      th:alt="${product.name}"
                      loading="lazy">
                 <div class="card-body">
-                    <span class="badge" th:text="${product.productCategory.displayName}">Accessory</span>
-                    <h3 th:text="${product.name}">Cable organizer</h3>
+                    <div class="card-topline">
+                        <span class="badge" th:text="${product.productCategory.displayName}">Accessory</span>
+                        <span class="status-badge status-available" th:if="${product.available}">Available</span>
+                    </div>
+                    <h3 class="product-card-title" th:text="${product.name}">Cable organizer</h3>
                     <p th:text="${product.description}">A durable printed product for everyday use.</p>
                     <div class="meta-grid">
                         <span th:text="${product.material.displayName}">PLA</span>
                         <span th:text="|${product.estimatedPrintTimeMinutes} min|">240 min</span>
                     </div>
                     <div class="card-footer">
-                        <strong th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€18.00</strong>
-                        <a class="btn btn-small" th:href="@{/products/{id}(id=${product.id})}">Details</a>
+                        <strong th:text="|EUR ${#numbers.formatDecimal(product.price, 1, 2)}|">EUR 18.00</strong>
+                        <span class="btn btn-small" aria-hidden="true">View details</span>
                     </div>
                 </div>
-            </article>
+            </a>
         </div>
 
         <div class="empty-state" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">

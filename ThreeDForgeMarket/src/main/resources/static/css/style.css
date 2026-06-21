@@ -493,7 +493,8 @@ main {
     margin-top: var(--space-lg);
 }
 
-.catalog-grid {
+.catalog-grid,
+.featured-grid {
     grid-template-columns: repeat(auto-fill, minmax(270px, 320px));
     justify-content: center;
 }
