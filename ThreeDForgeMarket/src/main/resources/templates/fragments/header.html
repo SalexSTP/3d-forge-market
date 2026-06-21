@@ -8,13 +8,35 @@
             <span>ForgeMarket</span>
         </a>
 
-        <nav id="primary-nav" class="primary-nav" aria-label="Primary navigation">
-            <a th:href="@{/products}">Products</a>
-            <a th:if="${isAuthenticated == true}" th:href="@{/orders/my}">My orders</a>
-            <a th:if="${isAdmin == true}" th:href="@{/admin/products}">Admin products</a>
-            <a th:if="${isAdmin == true}" th:href="@{/admin/orders}">Admin orders</a>
-            <a th:if="${isAdmin == true}" th:href="@{/admin/reviews}">Admin reviews</a>
+        <nav class="desktop-nav" aria-label="Main navigation">
+            <a class="catalog-link" th:href="@{/products}">Products</a>
+
+            <details class="nav-dropdown" th:if="${isAdmin == true}">
+                <summary>Admin</summary>
+                <div class="nav-dropdown-menu">
+                    <a th:href="@{/admin/products}">Product management</a>
+                    <a th:href="@{/admin/orders}">Customer orders</a>
+                    <a th:href="@{/admin/reviews}">Review moderation</a>
+                </div>
+            </details>
         </nav>
+    </div>
+
+    <div class="desktop-actions">
+        <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
+            <summary th:text="${currentUsername}">customer</summary>
+            <div class="nav-dropdown-menu">
+                <a th:href="@{/orders/my}">My orders</a>
+                <form th:action="@{/logout}" method="post">
+                    <button class="dropdown-action" type="submit">Log out</button>
+                </form>
+            </div>
+        </details>
+
+        <div class="auth-links" th:if="${isAuthenticated != true}">
+            <a class="btn btn-ghost" th:href="@{/auth/login}">Log in</a>
+            <a class="btn btn-primary" th:href="@{/auth/register}">Register</a>
+        </div>
     </div>
 
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
@@ -24,14 +46,31 @@
         <span></span>
     </button>
 
-    <div class="header-actions">
-        <span class="user-chip" th:if="${isAuthenticated == true}" th:text="${currentUsername}">customer</span>
+    <nav id="primary-nav" class="primary-nav" aria-label="Site navigation">
+        <a class="menu-catalog-link" th:href="@{/products}">Products</a>
+
+        <details class="nav-dropdown" th:if="${isAdmin == true}">
+            <summary>Admin</summary>
+            <div class="nav-dropdown-menu">
+                <a th:href="@{/admin/products}">Product management</a>
+                <a th:href="@{/admin/orders}">Customer orders</a>
+                <a th:href="@{/admin/reviews}">Review moderation</a>
+            </div>
+        </details>
+
+        <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
+            <summary th:text="${currentUsername}">customer</summary>
+            <div class="nav-dropdown-menu">
+                <a th:href="@{/orders/my}">My orders</a>
+                <form th:action="@{/logout}" method="post">
+                    <button class="dropdown-action" type="submit">Log out</button>
+                </form>
+            </div>
+        </details>
+
         <a class="btn btn-ghost" th:if="${isAuthenticated != true}" th:href="@{/auth/login}">Log in</a>
         <a class="btn btn-primary" th:if="${isAuthenticated != true}" th:href="@{/auth/register}">Register</a>
-        <form th:if="${isAuthenticated == true}" th:action="@{/logout}" method="post">
-            <button class="btn btn-ghost" type="submit">Log out</button>
-        </form>
-    </div>
+    </nav>
 </header>
 </body>
 </html>

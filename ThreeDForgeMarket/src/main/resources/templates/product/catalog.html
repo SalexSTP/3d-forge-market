@@ -9,43 +9,52 @@
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 <main>
-    <section class="page-heading">
-        <p class="eyebrow">Catalog</p>
-        <h1>Browse available 3D-printed products</h1>
+    <section class="page-heading catalog-heading">
+        <div>
+            <p class="eyebrow">Catalog</p>
+            <h1>Browse available 3D-printed products</h1>
+        </div>
+        <button class="btn btn-filter" type="button" aria-expanded="false" aria-controls="catalog-filter-panel">
+            Search and filter
+        </button>
     </section>
 
     <div th:replace="~{fragments/messages :: messages}"></div>
 
-    <form class="filter-bar" th:action="@{/products}" method="get">
-        <div class="field">
-            <label for="search">Search</label>
-            <input id="search"
-                   name="search"
-                   type="search"
-                   th:value="${search}"
-                   maxlength="100"
-                   placeholder="Product name or keyword">
-        </div>
+    <section class="catalog-tools">
+        <form id="catalog-filter-panel" class="filter-bar is-collapsed" th:action="@{/products}" method="get">
+            <div class="field">
+                <label for="search">Search</label>
+                <input id="search"
+                       name="search"
+                       type="search"
+                       th:value="${search}"
+                       maxlength="100"
+                       placeholder="Product name or keyword">
+            </div>
 
-        <div class="field">
-            <label for="category">Category</label>
-            <select id="category" name="category">
-                <option value="">All categories</option>
-                <option th:each="category : ${categories}"
-                        th:value="${category}"
-                        th:text="${category.displayName}"
-                        th:selected="${category == selectedCategory}">
-                    Accessory
-                </option>
-            </select>
-        </div>
+            <div class="field">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="">All categories</option>
+                    <option th:each="category : ${categories}"
+                            th:value="${category}"
+                            th:text="${category.displayName}"
+                            th:selected="${category == selectedCategory}">
+                        Accessory
+                    </option>
+                </select>
+            </div>
 
-        <button class="btn btn-primary" type="submit">Filter</button>
-        <a class="btn btn-ghost" th:href="@{/products}">Reset</a>
-    </form>
+            <button class="btn btn-primary" type="submit">Apply filters</button>
+            <a class="btn btn-ghost" th:href="@{/products}">Reset</a>
+        </form>
+    </section>
 
-    <section class="product-grid" th:if="${products != null and !#lists.isEmpty(products)}">
-        <article class="product-card" th:each="product : ${products}">
+    <section class="product-grid catalog-grid" th:if="${products != null and !#lists.isEmpty(products)}">
+        <a class="product-card product-card-link"
+           th:each="product : ${products}"
+           th:href="@{/products/{id}(id=${product.id})}">
             <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
                  th:alt="${product.name}"
                  loading="lazy">
@@ -56,20 +65,20 @@
                     <span class="status-badge status-hidden" th:if="${!product.available}">Unavailable</span>
                 </div>
 
-                <h2 th:text="${product.name}">Desk hook</h2>
+                <h2 class="product-card-title" th:text="${product.name}">Desk hook</h2>
 
                 <dl class="spec-list">
                     <div><dt>Material</dt><dd th:text="${product.material.displayName}">PETG</dd></div>
-                    <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} × ${product.heightCm} × ${product.depthCm} cm|">10 × 4 × 3 cm</dd></div>
+                    <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} x ${product.heightCm} x ${product.depthCm} cm|">10 x 4 x 3 cm</dd></div>
                     <div><dt>Print time</dt><dd th:text="|${product.estimatedPrintTimeMinutes} min|">200 min</dd></div>
                 </dl>
 
                 <div class="card-footer">
-                    <strong th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€12.00</strong>
-                    <a class="btn btn-small" th:href="@{/products/{id}(id=${product.id})}">Details</a>
+                    <strong th:text="|EUR ${#numbers.formatDecimal(product.price, 1, 2)}|">EUR 12.00</strong>
+                    <span class="btn btn-small" aria-hidden="true">View details</span>
                 </div>
             </div>
-        </article>
+        </a>
     </section>
 
     <section class="empty-state" th:if="${products == null or #lists.isEmpty(products)}">
