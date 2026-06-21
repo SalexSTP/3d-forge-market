@@ -13,7 +13,25 @@
 
     <section class="details-layout">
         <div class="details-media">
-            <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+            <model-viewer class="model-preview"
+                          th:if="${product.modelUrl != null and !#strings.isEmpty(product.modelUrl)}"
+                          th:src="${product.modelUrl}"
+                          th:poster="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                          th:alt="|3D preview of ${product.name}|"
+                          camera-controls
+                          auto-rotate
+                          shadow-intensity="0.8"
+                          environment-image="neutral"
+                          touch-action="pan-y">
+                <div class="model-fallback" slot="poster">
+                    <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                         th:alt="${product.name}">
+                    <span>Loading 3D preview…</span>
+                </div>
+            </model-viewer>
+
+            <img th:if="${product.modelUrl == null or #strings.isEmpty(product.modelUrl)}"
+                 th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
                  th:alt="${product.name}">
         </div>
 
@@ -106,6 +124,7 @@
     </section>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/model-viewer.min.js}"></script>
 <script th:src="@{/js/main.js}"></script>
 </body>
 </html>
