@@ -22,6 +22,26 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    document.querySelectorAll(".media-tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+            var targetId = tab.getAttribute("data-media-target");
+            var target = targetId && document.getElementById(targetId);
+
+            if (!target) {
+                return;
+            }
+
+            document.querySelectorAll(".media-tab").forEach(function (item) {
+                item.classList.toggle("is-active", item === tab);
+                item.setAttribute("aria-selected", String(item === tab));
+            });
+
+            document.querySelectorAll(".media-panel").forEach(function (panel) {
+                panel.classList.toggle("is-active", panel === target);
+            });
+        });
+    });
+
     document.querySelectorAll("form[data-confirm]").forEach(function (form) {
         form.addEventListener("submit", function (event) {
             var message = form.getAttribute("data-confirm") || "Confirm this action?";

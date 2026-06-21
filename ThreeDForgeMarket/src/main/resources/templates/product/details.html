@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="|${product.name} | 3DForgeMarket|">Product details | 3DForgeMarket</title>
+    <title th:text="${product.name + ' | 3DForgeMarket'}">Product | 3DForgeMarket</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -13,26 +13,37 @@
 
     <section class="details-layout">
         <div class="details-media">
-            <model-viewer class="model-preview"
-                          th:if="${product.modelUrl != null and !#strings.isEmpty(product.modelUrl)}"
-                          th:src="${product.modelUrl}"
-                          th:poster="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
-                          th:alt="|3D preview of ${product.name}|"
-                          camera-controls
-                          auto-rotate
-                          shadow-intensity="0.8"
-                          environment-image="neutral"
-                          touch-action="pan-y">
-                <div class="model-fallback" slot="poster">
-                    <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
-                         th:alt="${product.name}">
-                    <span>Loading 3D preview…</span>
-                </div>
-            </model-viewer>
+            <div class="media-tabs" th:if="${product.modelUrl != null and !#strings.isEmpty(product.modelUrl)}" role="tablist" aria-label="Product media">
+                <button class="media-tab is-active" type="button" data-media-target="product-image-panel" aria-selected="true">Image</button>
+                <button class="media-tab" type="button" data-media-target="product-model-panel" aria-selected="false">3D model</button>
+            </div>
 
-            <img th:if="${product.modelUrl == null or #strings.isEmpty(product.modelUrl)}"
-                 th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
-                 th:alt="${product.name}">
+            <div id="product-image-panel" class="media-panel is-active">
+                <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                     th:alt="${product.name}">
+            </div>
+
+            <div id="product-model-panel"
+                 class="media-panel"
+                 th:if="${product.modelUrl != null and !#strings.isEmpty(product.modelUrl)}">
+                <model-viewer class="model-preview"
+                              th:src="${product.modelUrl}"
+                              th:poster="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                              th:alt="|3D preview of ${product.name}|"
+                              camera-controls
+                              auto-rotate
+                              shadow-intensity="1.2"
+                              exposure="0.78"
+                              environment-image="neutral"
+                              camera-orbit="35deg 65deg auto"
+                              touch-action="pan-y">
+                    <div class="model-fallback" slot="poster">
+                        <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                             th:alt="${product.name}">
+                        <span>Loading 3D preview...</span>
+                    </div>
+                </model-viewer>
+            </div>
         </div>
 
         <div class="details-content">
@@ -44,17 +55,17 @@
 
             <h1 th:text="${product.name}">Modular storage tray</h1>
             <p class="lead" th:text="${product.description}">Detailed product description goes here.</p>
-            <p class="price-large" th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€24.00</p>
+            <p class="price-large" th:text="|EUR ${#numbers.formatDecimal(product.price, 1, 2)}|">EUR 24.00</p>
 
             <dl class="details-specs">
-                <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} × ${product.heightCm} × ${product.depthCm} cm|">18 × 8 × 4 cm</dd></div>
+                <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} x ${product.heightCm} x ${product.depthCm} cm|">18 x 8 x 4 cm</dd></div>
                 <div><dt>Weight</dt><dd th:text="|${product.weightGrams} g|">120 g</dd></div>
                 <div><dt>Material</dt><dd th:text="${product.material.displayName}">PLA</dd></div>
                 <div><dt>Colour</dt><dd th:text="${product.colorDescription}">Matte black</dd></div>
                 <div><dt>Estimated print time</dt><dd th:text="|${product.estimatedPrintTimeMinutes} min|">315 min</dd></div>
             </dl>
 
-            <div class="action-row">
+            <div class="details-actions">
                 <a class="btn btn-primary"
                    th:if="${isAuthenticated == true and isAdmin != true and product.available}"
                    th:href="@{/orders/create(productId=${product.id})}">
