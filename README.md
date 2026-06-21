@@ -234,15 +234,16 @@ http://localhost:8080
 
 ## External Image and Model Storage
 
-Product images and printable 3D-model files are planned to be stored in Google Drive.
+Product images and public GLB preview models are stored in a public Supabase Storage bucket.
 
-The database stores URLs rather than large binary files. Image links must be shared publicly for viewing so product images can load in the catalogue. Printable model URLs are intended for administrator use during the printing process and should not be displayed publicly to customers.
+The bucket is organized into two folders:
 
-A local fallback image is available under:
+- `images/` — product images
+- `models/` — public GLB product preview models
 
-```text
-src/main/resources/static/images/placeholder-product.svg
-```
+The database stores the public URLs for these files in `imageUrl` and `modelUrl`.
+
+Because the bucket is public, anyone with an asset URL can access it. Only public preview assets should be uploaded there.
 
 ## Notes
 
