@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DForgeMarket | 3D Printed Products</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">Made-to-order 3D prints</p>
+            <h1>Discover practical and distinctive products, printed layer by layer.</h1>
+            <p class="hero-copy">Browse ready-to-order designs, submit your order request, and follow each stage from confirmation to delivery.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" th:href="@{/products}">Browse products</a>
+                <a class="btn btn-secondary" th:if="${!isAuthenticated}" th:href="@{/auth/register}">Create account</a>
+                <a class="btn btn-secondary" th:if="${isAuthenticated}" th:href="@{/orders/my}">View my orders</a>
+            </div>
+        </div>
+        <div class="hero-panel" aria-label="3DForgeMarket highlights">
+            <div>
+                <span class="panel-number">Custom</span>
+                <span>Made after you order</span>
+            </div>
+            <div>
+                <span class="panel-number">PLA / PETG</span>
+                <span>Selected print materials</span>
+            </div>
+            <div>
+                <span class="panel-number">Tracked</span>
+                <span>Clear order-status updates</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <p class="eyebrow">Featured prints</p>
+            <h2>Popular products</h2>
+        </div>
+
+        <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+            <article class="product-card" th:each="product : ${featuredProducts}">
+                <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                     th:alt="${product.name}"
+                     loading="lazy">
+                <div class="card-body">
+                    <span class="badge" th:text="${product.productCategory.displayName}">Accessory</span>
+                    <h3 th:text="${product.name}">Cable organizer</h3>
+                    <p th:text="${product.description}">A durable printed product for everyday use.</p>
+                    <div class="meta-grid">
+                        <span th:text="${product.material.displayName}">PLA</span>
+                        <span th:text="|${product.estimatedPrintTimeMinutes} min|">240 min</span>
+                    </div>
+                    <div class="card-footer">
+                        <strong th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€18.00</strong>
+                        <a class="btn btn-small" th:href="@{/products/{id}(id=${product.id})}">Details</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="empty-state" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
+            <h3>No featured products yet</h3>
+            <p>Check back soon for new 3D-printed products.</p>
+            <a class="btn btn-primary" th:href="@{/products}">Browse catalog</a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product catalog | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Catalog</p>
+        <h1>Browse available 3D-printed products</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <form class="filter-bar" th:action="@{/products}" method="get">
+        <div class="field">
+            <label for="search">Search</label>
+            <input id="search"
+                   name="search"
+                   type="search"
+                   th:value="${search}"
+                   maxlength="100"
+                   placeholder="Product name or keyword">
+        </div>
+
+        <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+                <option value="">All categories</option>
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category.displayName}"
+                        th:selected="${category == selectedCategory}">
+                    Accessory
+                </option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Filter</button>
+        <a class="btn btn-ghost" th:href="@{/products}">Reset</a>
+    </form>
+
+    <section class="product-grid" th:if="${products != null and !#lists.isEmpty(products)}">
+        <article class="product-card" th:each="product : ${products}">
+            <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                 th:alt="${product.name}"
+                 loading="lazy">
+            <div class="card-body">
+                <div class="card-topline">
+                    <span class="badge" th:text="${product.productCategory.displayName}">Accessory</span>
+                    <span class="status-badge status-available" th:if="${product.available}">Available</span>
+                    <span class="status-badge status-hidden" th:if="${!product.available}">Unavailable</span>
+                </div>
+
+                <h2 th:text="${product.name}">Desk hook</h2>
+
+                <dl class="spec-list">
+                    <div><dt>Material</dt><dd th:text="${product.material.displayName}">PETG</dd></div>
+                    <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} × ${product.heightCm} × ${product.depthCm} cm|">10 × 4 × 3 cm</dd></div>
+                    <div><dt>Print time</dt><dd th:text="|${product.estimatedPrintTimeMinutes} min|">200 min</dd></div>
+                </dl>
+
+                <div class="card-footer">
+                    <strong th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€12.00</strong>
+                    <a class="btn btn-small" th:href="@{/products/{id}(id=${product.id})}">Details</a>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="empty-state" th:if="${products == null or #lists.isEmpty(products)}">
+        <h2>No products found</h2>
+        <p>Try a different search term or category filter.</p>
+        <a class="btn btn-secondary" th:href="@{/products}">View all products</a>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

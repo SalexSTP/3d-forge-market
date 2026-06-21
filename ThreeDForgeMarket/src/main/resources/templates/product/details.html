@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${product.name} | 3DForgeMarket|">Product details | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="details-layout">
+        <div class="details-media">
+            <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                 th:alt="${product.name}">
+        </div>
+
+        <div class="details-content">
+            <div class="card-topline">
+                <span class="badge" th:text="${product.productCategory.displayName}">Accessory</span>
+                <span class="status-badge status-available" th:if="${product.available}">Available</span>
+                <span class="status-badge status-hidden" th:if="${!product.available}">Unavailable</span>
+            </div>
+
+            <h1 th:text="${product.name}">Modular storage tray</h1>
+            <p class="lead" th:text="${product.description}">Detailed product description goes here.</p>
+            <p class="price-large" th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€24.00</p>
+
+            <dl class="details-specs">
+                <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} × ${product.heightCm} × ${product.depthCm} cm|">18 × 8 × 4 cm</dd></div>
+                <div><dt>Weight</dt><dd th:text="|${product.weightGrams} g|">120 g</dd></div>
+                <div><dt>Material</dt><dd th:text="${product.material.displayName}">PLA</dd></div>
+                <div><dt>Colour</dt><dd th:text="${product.colorDescription}">Matte black</dd></div>
+                <div><dt>Estimated print time</dt><dd th:text="|${product.estimatedPrintTimeMinutes} min|">315 min</dd></div>
+            </dl>
+
+            <div class="action-row">
+                <a class="btn btn-primary"
+                   th:if="${isAuthenticated and !isAdmin and product.available}"
+                   th:href="@{/orders/create(productId=${product.id})}">
+                    Order this print
+                </a>
+
+                <div class="prompt-box" th:if="${!isAuthenticated}">
+                    <p>Log in or register to place orders and leave reviews.</p>
+                    <div class="action-row compact">
+                        <a class="btn btn-primary" th:href="@{/auth/login}">Log in</a>
+                        <a class="btn btn-secondary" th:href="@{/auth/register}">Register</a>
+                    </div>
+                </div>
+
+                <div class="prompt-box" th:if="${isAuthenticated and !isAdmin and !product.available}">
+                    <p>This product is currently unavailable for new orders.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading inline-heading">
+            <div>
+                <p class="eyebrow">Customer feedback</p>
+                <h2>Reviews</h2>
+            </div>
+            <a class="btn btn-secondary"
+               th:if="${canReview}"
+               th:href="@{/products/{id}/reviews/new(id=${product.id})}">
+                Add review
+            </a>
+        </div>
+
+        <div class="review-list" th:if="${reviews != null and !#lists.isEmpty(reviews)}">
+            <article class="review-card" th:each="review : ${reviews}">
+                <div class="review-head">
+                    <strong th:text="${review.author.username}">makerFan42</strong>
+                    <span class="rating" th:text="|${review.rating}/5|">5/5</span>
+                </div>
+
+                <p th:text="${review.comment}">Solid print and clean edges.</p>
+                <time th:datetime="${review.createdOn}"
+                      th:text="${#temporals.format(review.createdOn, 'dd MMM yyyy')}">
+                    21 Jun 2026
+                </time>
+
+                <div class="action-row compact" th:if="${isAdmin or review.author.id == currentUserId}">
+                    <a class="btn btn-small"
+                       th:if="${review.author.id == currentUserId}"
+                       th:href="@{/reviews/{id}/edit(id=${review.id})}">
+                        Edit
+                    </a>
+                    <form th:action="@{/reviews/{id}/delete(id=${review.id})}"
+                          method="post"
+                          data-confirm="Delete this review?">
+                        <button class="btn btn-danger btn-small" type="submit">Delete</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+
+        <div class="empty-state" th:if="${reviews == null or #lists.isEmpty(reviews)}">
+            <h3>No reviews yet</h3>
+            <p>Customers who received this product can share their print experience.</p>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
