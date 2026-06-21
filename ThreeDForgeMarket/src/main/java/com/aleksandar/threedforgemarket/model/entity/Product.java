@@ -1,5 +1,6 @@
 package com.aleksandar.threedforgemarket.model.entity;
 
+import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,11 +40,31 @@ public class Product {
     @Column(length = 500)
     private String modelUrl;
 
+    @Column(nullable = false)
     private Integer estimatedPrintTimeMinutes;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal widthCm;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal heightCm;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal depthCm;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal weightGrams;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductCategory productCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PrintMaterial material;
+
+    @Column(nullable = false, length = 255)
+    private String colorDescription;
 
     @Builder.Default
     @Column(nullable = false)

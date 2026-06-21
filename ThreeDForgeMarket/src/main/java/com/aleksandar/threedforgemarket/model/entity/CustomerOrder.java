@@ -36,12 +36,6 @@ public class CustomerOrder {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false, length = 50)
-    private String material;
-
-    @Column(nullable = false, length = 50)
-    private String color;
-
     @Column(nullable = false, length = 255)
     private String deliveryAddress;
 
