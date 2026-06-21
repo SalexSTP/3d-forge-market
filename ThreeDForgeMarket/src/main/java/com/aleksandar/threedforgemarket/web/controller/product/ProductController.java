@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.web.product;
+package com.aleksandar.threedforgemarket.web.controller.product;
 
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import com.aleksandar.threedforgemarket.service.product.ProductService;

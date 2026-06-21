@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.web.auth;
+package com.aleksandar.threedforgemarket.web.controller.auth;
 
 import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.auth.InvalidLoginCredentialsException;

@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.web.index;
+package com.aleksandar.threedforgemarket.web.controller.index;
 
 import com.aleksandar.threedforgemarket.service.product.ProductService;
 import org.springframework.stereotype.Controller;

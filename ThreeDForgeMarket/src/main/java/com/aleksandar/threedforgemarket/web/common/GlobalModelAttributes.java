@@ -3,7 +3,7 @@ package com.aleksandar.threedforgemarket.web.common;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.service.user.UserService;
-import com.aleksandar.threedforgemarket.web.auth.AuthController;
+import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
