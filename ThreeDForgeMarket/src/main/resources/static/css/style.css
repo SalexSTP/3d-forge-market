@@ -34,13 +34,18 @@
 }
 
 html {
+    height: 100%;
     scroll-behavior: smooth;
 }
 
 body {
+    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
     background: var(--color-bg);
     color: var(--color-text);
+    display: flex;
+    flex-direction: column;
     font-family: Arial, Helvetica, sans-serif;
     line-height: 1.5;
 }
@@ -60,6 +65,7 @@ a:hover {
 }
 
 main {
+    flex: 1 0 auto;
     width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
     padding: var(--space-xl) 0;
@@ -728,6 +734,8 @@ tr:last-child td {
 }
 
 .site-footer {
+    flex-shrink: 0;
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
     gap: var(--space-lg);
