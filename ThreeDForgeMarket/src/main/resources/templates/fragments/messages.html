@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="messages" class="flash-stack" aria-live="polite" aria-atomic="true">
+    <div class="flash flash-success" th:if="${successMessage != null}" th:text="${successMessage}">Saved successfully.</div>
+    <div class="flash flash-error" th:if="${errorMessage != null}" th:text="${errorMessage}">Something went wrong.</div>
+    <div class="flash flash-info" th:if="${infoMessage != null}" th:text="${infoMessage}">Information message.</div>
+</div>
+</body>
+</html>

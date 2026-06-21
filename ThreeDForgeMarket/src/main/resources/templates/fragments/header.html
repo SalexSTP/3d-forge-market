@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header" class="site-header">
+    <a class="brand" th:href="@{/}" aria-label="3DForgeMarket home">
+        <span class="brand-mark" aria-hidden="true">3D</span>
+        <span>ForgeMarket</span>
+    </a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+        <span class="sr-only">Toggle navigation</span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <nav id="primary-nav" class="primary-nav" aria-label="Primary navigation">
+        <a th:href="@{/products}">Products</a>
+        <a th:if="${isAuthenticated}" th:href="@{/orders/my}">My orders</a>
+        <a th:if="${isAdmin}" th:href="@{/admin/products}">Admin products</a>
+        <a th:if="${isAdmin}" th:href="@{/admin/orders}">Admin orders</a>
+        <a th:if="${isAdmin}" th:href="@{/admin/reviews}">Admin reviews</a>
+    </nav>
+
+    <div class="header-actions">
+        <span class="user-chip" th:if="${isAuthenticated}" th:text="${currentUsername}">customer</span>
+        <a class="btn btn-ghost" th:if="${!isAuthenticated}" th:href="@{/auth/login}">Log in</a>
+        <a class="btn btn-primary" th:if="${!isAuthenticated}" th:href="@{/auth/register}">Register</a>
+        <form th:if="${isAuthenticated}" th:action="@{/auth/logout}" method="post">
+            <button class="btn btn-ghost" type="submit">Log out</button>
+        </form>
+    </div>
+</header>
+</body>
+</html>

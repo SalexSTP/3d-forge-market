@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">3D printed product placeholder</title>
+  <desc id="desc">A stylized 3D printed cube and printer bed placeholder image.</desc>
+  <defs>
+    <linearGradient id="bed" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#22314a"/>
+      <stop offset="1" stop-color="#0f1724"/>
+    </linearGradient>
+    <linearGradient id="print" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="28" fill="#f3f7fb"/>
+  <path d="M95 337h450l-68 72H163z" fill="url(#bed)"/>
+  <path d="M160 333h320" stroke="#2dd4bf" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+  <path d="M253 166l89-51 91 52-89 52z" fill="#9ff5e9"/>
+  <path d="M253 166v104l91 54V219z" fill="#2dd4bf"/>
+  <path d="M433 167v105l-89 52V219z" fill="url(#print)"/>
+  <path d="M252 201l92 53 90-52M252 235l92 53 90-52" fill="none" stroke="#ffffff" stroke-width="6" opacity=".55"/>
+  <path d="M191 97h258v38H191zM303 135h34v54h-34z" fill="#0f1724"/>
+  <path d="M143 105h354M143 105v84M497 105v84" fill="none" stroke="#5b6b84" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="320" cy="377" r="8" fill="#2dd4bf"/>
+  <text x="320" y="446" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#334155">3DForgeMarket</text>
+</svg>

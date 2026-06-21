@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="site-footer">
+    <div>
+        <strong>3DForgeMarket</strong>
+        <p>Made-to-order 3D-printed products for everyday use, gifts, and display.</p>
+    </div>
+    <nav aria-label="Footer navigation">
+        <a th:href="@{/products}">Catalog</a>
+        <a th:href="@{/auth/register}" th:if="${!isAuthenticated}">Create account</a>
+        <a th:href="@{/orders/my}" th:if="${isAuthenticated}">My orders</a>
+    </nav>
+</footer>
+</body>
+</html>
