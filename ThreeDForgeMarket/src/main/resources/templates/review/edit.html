@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit review | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="narrow-page">
+    <section class="page-heading">
+        <p class="eyebrow">Review</p>
+        <h1 th:text="${reviewForm.id == null ? 'Add review' : 'Edit review'}">Edit review</h1>
+    </section>
+
+    <form class="form-card"
+          th:action="${reviewForm.id == null} ? @{/reviews} : @{/reviews/{id}/edit(id=${reviewForm.id})}"
+          th:object="${reviewForm}"
+          method="post">
+        <div th:replace="~{fragments/messages :: messages}"></div>
+
+        <input type="hidden" th:field="*{productId}">
+
+        <div class="field">
+            <label for="rating">Rating</label>
+            <select id="rating" th:field="*{rating}" required>
+                <option value="">Choose rating</option>
+                <option th:each="value : ${#numbers.sequence(1, 5)}"
+                        th:value="${value}"
+                        th:text="|${value} / 5|">
+                    5 / 5
+                </option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}">Rating error.</p>
+        </div>
+
+        <div class="field">
+            <label for="comment">Comment</label>
+            <textarea id="comment"
+                      rows="6"
+                      th:field="*{comment}"
+                      maxlength="1000"
+                      required></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}">Comment error.</p>
+        </div>
+
+        <div class="action-row">
+            <button class="btn btn-primary" type="submit">Save review</button>
+            <a class="btn btn-ghost" th:href="@{/products/{id}(id=${reviewForm.productId})}">Cancel</a>
+        </div>
+    </form>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

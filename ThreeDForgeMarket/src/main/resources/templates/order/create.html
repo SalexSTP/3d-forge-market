@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create order | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Order request</p>
+        <h1>Confirm your print order</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="order-layout">
+        <aside class="summary-panel">
+            <img th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                 th:alt="${product.name}">
+            <h2 th:text="${product.name}">Product name</h2>
+            <dl class="spec-list">
+                <div><dt>Material</dt><dd th:text="${product.material.displayName}">PLA</dd></div>
+                <div><dt>Colour</dt><dd th:text="${product.colorDescription}">Matte black</dd></div>
+                <div><dt>Dimensions</dt><dd th:text="|${product.widthCm} × ${product.heightCm} × ${product.depthCm} cm|">12 × 8 × 4 cm</dd></div>
+                <div><dt>Unit price</dt><dd th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€18.00</dd></div>
+            </dl>
+        </aside>
+
+        <form class="form-card"
+              th:action="@{/orders/create}"
+              th:object="${orderForm}"
+              method="post"
+              th:attr="data-unit-price=${product.price}">
+            <input type="hidden" th:field="*{productId}">
+
+            <div class="field">
+                <label for="quantity">Quantity</label>
+                <input id="quantity"
+                       type="number"
+                       min="1"
+                       step="1"
+                       th:field="*{quantity}"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}">Quantity error.</p>
+            </div>
+
+            <div class="field">
+                <label for="deliveryAddress">Delivery address</label>
+                <textarea id="deliveryAddress"
+                          rows="4"
+                          th:field="*{deliveryAddress}"
+                          maxlength="255"
+                          required></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('deliveryAddress')}" th:errors="*{deliveryAddress}">Delivery address error.</p>
+            </div>
+
+            <div class="field">
+                <label for="customerNote">Order note <span>Optional</span></label>
+                <textarea id="customerNote"
+                          rows="3"
+                          th:field="*{customerNote}"
+                          maxlength="1000"
+                          placeholder="Delivery details or an optional colour request. Requests are considered where possible."></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('customerNote')}" th:errors="*{customerNote}">Customer note error.</p>
+            </div>
+
+            <div class="readonly-total">
+                <span>Estimated total</span>
+                <strong id="order-total"
+                        aria-live="polite"
+                        th:text="${calculatedTotal != null ? '€' + #numbers.formatDecimal(calculatedTotal, 1, 2) : 'Calculated after submission'}">
+                    €18.00
+                </strong>
+            </div>
+            <p class="form-note">The final price is calculated and stored securely by the server when the order is placed.</p>
+
+            <div class="action-row">
+                <button class="btn btn-primary" type="submit">Place order</button>
+                <a class="btn btn-ghost" th:href="@{/products/{id}(id=${product.id})}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
