@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin reviews | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Admin</p>
+        <h1>Review moderation</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="responsive-table" th:if="${reviews != null and !#lists.isEmpty(reviews)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Author</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="review : ${reviews}">
+                <td data-label="Product">
+                    <a th:href="@{/products/{id}(id=${review.product.id})}" th:text="${review.product.name}">Part tray</a>
+                </td>
+                <td data-label="Author" th:text="${review.author.username}">customer</td>
+                <td data-label="Rating"><span class="rating" th:text="|${review.rating}/5|">5/5</span></td>
+                <td data-label="Comment" th:text="${review.comment}">Helpful product.</td>
+                <td data-label="Date" th:text="${#temporals.format(review.createdOn, 'dd MMM yyyy')}">21 Jun 2026</td>
+                <td data-label="Action">
+                    <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}"
+                          method="post"
+                          data-confirm="Delete this review?">
+                        <button class="btn btn-danger btn-small" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="empty-state" th:if="${reviews == null or #lists.isEmpty(reviews)}">
+        <h2>No reviews submitted</h2>
+        <p>Customer reviews will appear here for moderation.</p>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
