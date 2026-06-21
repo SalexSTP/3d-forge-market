@@ -92,13 +92,23 @@ public class ProductService {
     }
 
     @Transactional
-    public void saveProduct(ProductFormDto productForm) {
-        if (productForm.getId() == null) {
-            createProduct(productForm);
-            return;
-        }
+    public void createProduct(ProductFormDto productForm) {
+        validateProductName(productForm.getName(), null);
 
-        updateProduct(productForm);
+        Product product = productMapper.toEntity(productForm);
+
+        productRepository.save(product);
+    }
+
+    @Transactional
+    public void updateProduct(UUID productId, ProductFormDto productForm) {
+        Product product = findProductById(productId);
+
+        validateProductName(productForm.getName(), productId);
+
+        productMapper.updateEntity(product, productForm);
+
+        productRepository.save(product);
     }
 
     @Transactional
@@ -115,24 +125,6 @@ public class ProductService {
         Product product = findProductById(productId);
 
         productRepository.delete(product);
-    }
-
-    private void createProduct(ProductFormDto productForm) {
-        validateProductName(productForm.getName(), null);
-
-        Product product = productMapper.toEntity(productForm);
-
-        productRepository.save(product);
-    }
-
-    private void updateProduct(ProductFormDto productForm) {
-        Product product = findProductById(productForm.getId());
-
-        validateProductName(productForm.getName(), product.getId());
-
-        productMapper.updateEntity(product, productForm);
-
-        productRepository.save(product);
     }
 
     private Product findProductById(UUID productId) {

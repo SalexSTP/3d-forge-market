@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${(productForm.id == null ? 'Create product' : 'Edit product') + ' | 3DForgeMarket'}">Product form | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Admin catalog</p>
+        <h1 th:text="${productForm.id == null ? 'Create product' : 'Edit product'}">Create product</h1>
+    </section>
+
+    <form class="form-card form-grid"
+          th:action="${productForm.id == null}
+          ? @{/admin/products}
+          : @{/admin/products/{id}(id=${productForm.id})}"
+          th:object="${productForm}"
+          method="post">
+
+        <input type="hidden" th:field="*{id}">
+
+        <input th:if="${productForm.id != null}"
+               type="hidden"
+               name="_method"
+               value="put">
+
+        <div th:replace="~{fragments/messages :: messages}"></div>
+
+        <div class="field">
+            <label for="name">Name</label>
+            <input id="name"
+                   type="text"
+                   th:field="*{name}"
+                   minlength="3"
+                   maxlength="100"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error.</p>
+        </div>
+
+        <div class="field">
+            <label for="price">Price <span>EUR</span></label>
+            <input id="price"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   th:field="*{price}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">Price error.</p>
+        </div>
+
+        <div class="field full-span">
+            <label for="description">Description</label>
+            <textarea id="description"
+                      rows="5"
+                      th:field="*{description}"
+                      minlength="10"
+                      maxlength="1000"
+                      required></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error.</p>
+        </div>
+
+        <div class="field">
+            <label for="imageUrl">Image URL</label>
+            <input id="imageUrl"
+                   type="url"
+                   th:field="*{imageUrl}"
+                   placeholder="https://YOUR_PROJECT.supabase.co/storage/v1/object/public/YOUR_BUCKET/images/example.webp"
+                   maxlength="500"
+                   required>
+            <p class="form-hint">
+                Use a publicly accessible Supabase image URL from the images folder.
+            </p>
+            <p class="field-error"
+               th:if="${#fields.hasErrors('imageUrl')}"
+               th:errors="*{imageUrl}">
+                Image URL error.
+            </p>
+        </div>
+
+        <div class="field">
+            <label for="modelUrl">
+                3D preview URL <span>Optional · Public GLB file</span>
+            </label>
+
+            <input id="modelUrl"
+                   type="url"
+                   th:field="*{modelUrl}"
+                   placeholder="https://YOUR_PROJECT.supabase.co/storage/v1/object/public/YOUR_BUCKET/models/example.glb"
+                   maxlength="500">
+
+            <p class="form-hint">
+                Use a publicly accessible Supabase GLB URL from the models folder.
+                The preview will be shown on the product details page.
+            </p>
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('modelUrl')}"
+               th:errors="*{modelUrl}">
+                Model URL error.
+            </p>
+        </div>
+
+        <div class="field">
+            <label for="estimatedPrintTimeMinutes">Estimated print time (minutes)</label>
+            <input id="estimatedPrintTimeMinutes"
+                   type="number"
+                   min="1"
+                   step="1"
+                   th:field="*{estimatedPrintTimeMinutes}"
+                   placeholder="270"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('estimatedPrintTimeMinutes')}" th:errors="*{estimatedPrintTimeMinutes}">Estimated print time error.</p>
+        </div>
+
+        <div class="field">
+            <label for="widthCm">Width (cm)</label>
+            <input id="widthCm"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   th:field="*{widthCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('widthCm')}" th:errors="*{widthCm}">Width error.</p>
+        </div>
+
+        <div class="field">
+            <label for="heightCm">Height (cm)</label>
+            <input id="heightCm"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   th:field="*{heightCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('heightCm')}" th:errors="*{heightCm}">Height error.</p>
+        </div>
+
+        <div class="field">
+            <label for="depthCm">Depth (cm)</label>
+            <input id="depthCm"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   th:field="*{depthCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('depthCm')}" th:errors="*{depthCm}">Depth error.</p>
+        </div>
+
+        <div class="field">
+            <label for="weightGrams">Estimated weight (g)</label>
+            <input id="weightGrams"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   th:field="*{weightGrams}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('weightGrams')}" th:errors="*{weightGrams}">Weight error.</p>
+        </div>
+
+        <div class="field">
+            <label for="productCategory">Product category</label>
+            <select id="productCategory" th:field="*{productCategory}" required>
+                <option value="">Choose category</option>
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category.displayName}">
+                    Accessory
+                </option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('productCategory')}" th:errors="*{productCategory}">Category error.</p>
+        </div>
+
+        <div class="field">
+            <label for="material">Print material</label>
+            <select id="material" th:field="*{material}" required>
+                <option value="">Choose material</option>
+                <option th:each="material : ${materials}"
+                        th:value="${material}"
+                        th:text="${material.displayName}">
+                    PLA
+                </option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('material')}" th:errors="*{material}">Material error.</p>
+        </div>
+
+        <div class="field">
+            <label for="colorDescription">Colour description</label>
+            <input id="colorDescription"
+                   type="text"
+                   th:field="*{colorDescription}"
+                   maxlength="255"
+                   placeholder="e.g. Black and red details"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('colorDescription')}" th:errors="*{colorDescription}">Color description error.</p>
+        </div>
+
+        <div class="field checkbox-field">
+            <label for="available">
+                <input id="available" type="checkbox" th:field="*{available}">
+                Available in catalog
+            </label>
+            <p class="field-error" th:if="${#fields.hasErrors('available')}" th:errors="*{available}">Availability error.</p>
+        </div>
+
+        <div class="action-row full-span">
+            <button class="btn btn-primary"
+                    type="submit"
+                    th:text="${productForm.id == null ? 'Create product' : 'Save changes'}">
+                Save product
+            </button>
+            <a class="btn btn-ghost" th:href="@{/admin/products}">Cancel</a>
+        </div>
+    </form>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
