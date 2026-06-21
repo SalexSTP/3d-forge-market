@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin products | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading with-action">
+        <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Product management</h1>
+        </div>
+        <a class="btn btn-primary" th:href="@{/admin/products/new}">Create product</a>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="responsive-table" th:if="${products != null and !#lists.isEmpty(products)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Material</th>
+                <th>Price</th>
+                <th>Availability</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td data-label="Image">
+                    <img class="table-thumb"
+                         th:src="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder-product.svg'}"
+                         th:alt="${product.name}">
+                </td>
+                <td data-label="Name" th:text="${product.name}">Cable clip</td>
+                <td data-label="Category" th:text="${product.productCategory.displayName}">Accessory</td>
+                <td data-label="Material" th:text="${product.material.displayName}">PETG</td>
+                <td data-label="Price" th:text="|€${#numbers.formatDecimal(product.price, 1, 2)}|">€9.00</td>
+                <td data-label="Availability">
+                    <span class="status-badge status-available" th:if="${product.available}">Visible</span>
+                    <span class="status-badge status-hidden" th:if="${!product.available}">Hidden</span>
+                </td>
+                <td data-label="Actions">
+                    <div class="action-row compact">
+                        <a class="btn btn-small" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Edit</a>
+                        <form th:action="@{/admin/products/{id}/toggle(id=${product.id})}" method="post">
+                            <button class="btn btn-small btn-ghost"
+                                    type="submit"
+                                    th:text="${product.available ? 'Hide' : 'Show'}">
+                                Hide
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/products/{id}/delete(id=${product.id})}"
+                              method="post"
+                              data-confirm="Delete this product? Existing orders should be checked first.">
+                            <button class="btn btn-danger btn-small" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="empty-state" th:if="${products == null or #lists.isEmpty(products)}">
+        <h2>No products created</h2>
+        <p>Create the first catalog item customers can order.</p>
+        <a class="btn btn-primary" th:href="@{/admin/products/new}">Create product</a>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
