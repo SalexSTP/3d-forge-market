@@ -13,7 +13,14 @@
 
     <section class="hero">
         <div class="hero-content">
-            <p class="eyebrow">Made-to-order 3D prints</p>
+            <p class="eyebrow" th:if="${!isAuthenticated}">
+                Made-to-order 3D prints
+            </p>
+
+            <p class="eyebrow" th:if="${isAuthenticated}"
+               th:text="|Welcome back, ${currentUsername}.|">
+                Welcome back.
+            </p>
             <h1>Discover practical and distinctive products, printed layer by layer.</h1>
             <p class="hero-copy">Browse ready-to-order designs, submit your order request, and follow each stage from confirmation to delivery.</p>
             <div class="hero-actions">
