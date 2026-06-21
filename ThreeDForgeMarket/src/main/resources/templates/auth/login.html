@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="auth-page">
+    <section class="auth-shell">
+        <div class="auth-intro">
+            <p class="eyebrow">Customer access</p>
+            <h1>Log in to manage orders and review delivered prints.</h1>
+            <p class="lead">Use your username or email address to continue.</p>
+        </div>
+
+        <form class="form-card" th:action="@{/auth/login}" th:object="${loginForm}" method="post">
+            <div th:replace="~{fragments/messages :: messages}"></div>
+
+            <div class="field">
+                <label for="usernameOrEmail">Username or email</label>
+                <input id="usernameOrEmail"
+                       type="text"
+                       th:field="*{usernameOrEmail}"
+                       autocomplete="username"
+                       maxlength="100"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('usernameOrEmail')}" th:errors="*{usernameOrEmail}">Username or email is required.</p>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password"
+                       type="password"
+                       th:field="*{password}"
+                       autocomplete="current-password"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is required.</p>
+            </div>
+
+            <button class="btn btn-primary btn-wide" type="submit">Log in</button>
+            <p class="form-note">No account yet? <a th:href="@{/auth/register}">Register here</a>.</p>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="auth-page">
+    <section class="auth-shell">
+        <div class="auth-intro">
+            <p class="eyebrow">New account</p>
+            <h1>Create an account for simple 3D-print order management.</h1>
+            <p class="lead">You will be able to place orders, follow their status, and review delivered products.</p>
+        </div>
+
+        <form class="form-card" th:action="@{/auth/register}" th:object="${registerForm}" method="post">
+            <div th:replace="~{fragments/messages :: messages}"></div>
+
+            <div class="field">
+                <label for="username">Username</label>
+                <input id="username"
+                       type="text"
+                       th:field="*{username}"
+                       autocomplete="username"
+                       minlength="3"
+                       maxlength="30"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error.</p>
+            </div>
+
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email"
+                       type="email"
+                       th:field="*{email}"
+                       autocomplete="email"
+                       maxlength="100"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error.</p>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password"
+                       type="password"
+                       th:field="*{password}"
+                       autocomplete="new-password"
+                       minlength="6"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error.</p>
+            </div>
+
+            <div class="field">
+                <label for="confirmPassword">Confirm password</label>
+                <input id="confirmPassword"
+                       type="password"
+                       th:field="*{confirmPassword}"
+                       autocomplete="new-password"
+                       minlength="6"
+                       required>
+                <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Password confirmation error.</p>
+            </div>
+
+            <button class="btn btn-primary btn-wide" type="submit">Create account</button>
+            <p class="form-note">Already registered? <a th:href="@{/auth/login}">Log in</a>.</p>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
