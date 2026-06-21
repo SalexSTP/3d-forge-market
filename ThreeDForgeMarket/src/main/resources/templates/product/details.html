@@ -38,12 +38,12 @@
 
             <div class="action-row">
                 <a class="btn btn-primary"
-                   th:if="${isAuthenticated and !isAdmin and product.available}"
+                   th:if="${isAuthenticated == true and isAdmin != true and product.available}"
                    th:href="@{/orders/create(productId=${product.id})}">
                     Order this print
                 </a>
 
-                <div class="prompt-box" th:if="${!isAuthenticated}">
+                <div class="prompt-box" th:if="${isAuthenticated != true}">
                     <p>Log in or register to place orders and leave reviews.</p>
                     <div class="action-row compact">
                         <a class="btn btn-primary" th:href="@{/auth/login}">Log in</a>
@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <div class="prompt-box" th:if="${isAuthenticated and !isAdmin and !product.available}">
+                <div class="prompt-box" th:if="${isAuthenticated == true and isAdmin != true and !product.available}">
                     <p>This product is currently unavailable for new orders.</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                 <h2>Reviews</h2>
             </div>
             <a class="btn btn-secondary"
-               th:if="${canReview}"
+               th:if="${canReview == true}"
                th:href="@{/products/{id}/reviews/new(id=${product.id})}">
                 Add review
             </a>
@@ -84,7 +84,7 @@
                     21 Jun 2026
                 </time>
 
-                <div class="action-row compact" th:if="${isAdmin or review.author.id == currentUserId}">
+                <div class="action-row compact" th:if="${isAdmin == true or review.author.id == currentUserId}">
                     <a class="btn btn-small"
                        th:if="${review.author.id == currentUserId}"
                        th:href="@{/reviews/{id}/edit(id=${review.id})}">

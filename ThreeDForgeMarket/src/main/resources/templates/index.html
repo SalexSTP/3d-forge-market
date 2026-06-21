@@ -18,8 +18,8 @@
             <p class="hero-copy">Browse ready-to-order designs, submit your order request, and follow each stage from confirmation to delivery.</p>
             <div class="hero-actions">
                 <a class="btn btn-primary" th:href="@{/products}">Browse products</a>
-                <a class="btn btn-secondary" th:if="${!isAuthenticated}" th:href="@{/auth/register}">Create account</a>
-                <a class="btn btn-secondary" th:if="${isAuthenticated}" th:href="@{/orders/my}">View my orders</a>
+                <a class="btn btn-secondary" th:if="${isAuthenticated != true}" th:href="@{/auth/register}">Create account</a>
+                <a class="btn btn-secondary" th:if="${isAuthenticated == true}" th:href="@{/orders/my}">View my orders</a>
             </div>
         </div>
         <div class="hero-panel" aria-label="3DForgeMarket highlights">
