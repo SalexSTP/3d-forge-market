@@ -88,7 +88,7 @@ main {
     top: 0;
     z-index: 20;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
     gap: var(--space-lg);
     padding: var(--space-md) max(16px, calc((100vw - 1180px) / 2));
@@ -97,13 +97,24 @@ main {
     backdrop-filter: blur(14px);
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
 .brand {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: 0;
     color: var(--color-text);
     font-weight: 800;
     letter-spacing: 0;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
 }
 
 .brand:hover {
@@ -113,12 +124,15 @@ main {
 .brand-mark {
     display: inline-grid;
     place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-sm);
+    width: 44px;
+    height: 44px;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: #ffffff;
     font-weight: 900;
+}
+
+.brand span:last-child {
+    padding: 0 0.9rem;
 }
 
 .primary-nav,
@@ -130,18 +144,40 @@ main {
 }
 
 .primary-nav {
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
 }
 
 .primary-nav a {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.52rem 0.85rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
     color: var(--color-secondary);
-    font-weight: 700;
+    font-weight: 800;
+}
+
+.primary-nav a:first-child {
+    border-color: rgba(15, 118, 110, 0.24);
+    background: #e8f7f5;
+    color: var(--color-primary-dark);
+    box-shadow: 0 8px 16px rgba(15, 118, 110, 0.08);
+}
+
+.primary-nav a:hover {
+    background: var(--color-surface-strong);
+    text-decoration: none;
 }
 
 .header-actions form,
 .action-row form {
     margin: 0;
+}
+
+.header-actions {
+    justify-self: end;
 }
 
 .user-chip {
@@ -230,8 +266,8 @@ main {
     grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
     gap: var(--space-xl);
     align-items: stretch;
-    min-height: 520px;
-    padding: clamp(2rem, 5vw, 4.5rem);
+    min-height: 390px;
+    padding: clamp(1.5rem, 3.5vw, 3rem);
     border-radius: var(--radius-md);
     background:
         linear-gradient(135deg, rgba(15, 118, 110, 0.92), rgba(25, 38, 58, 0.96)),
@@ -251,13 +287,13 @@ main {
 
 .hero h1 {
     max-width: 760px;
-    font-size: clamp(2.3rem, 6vw, 4.8rem);
+    font-size: clamp(2rem, 4.4vw, 3.8rem);
 }
 
 .hero-copy {
     max-width: 650px;
     color: #d7f8f2;
-    font-size: 1.15rem;
+    font-size: 1.02rem;
 }
 
 .hero-actions {
@@ -274,7 +310,7 @@ main {
 }
 
 .hero-panel div {
-    padding: var(--space-lg);
+    padding: var(--space-md);
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.12);
@@ -282,7 +318,7 @@ main {
 
 .panel-number {
     display: block;
-    font-size: 1.8rem;
+    font-size: 1.35rem;
     font-weight: 900;
 }
 
@@ -764,6 +800,10 @@ tr:last-child td {
 @media (max-width: 880px) {
     .site-header {
         grid-template-columns: auto auto;
+    }
+
+    .header-left {
+        display: contents;
     }
 
     .nav-toggle {
