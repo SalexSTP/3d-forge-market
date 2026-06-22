@@ -3,7 +3,7 @@ package com.aleksandar.threedforgemarket.config.seed;
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
-import com.aleksandar.threedforgemarket.repository.ProductRepository;
+import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -6,7 +6,7 @@ import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllo
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
-import com.aleksandar.threedforgemarket.mapper.CustomerOrderMapper;
+import com.aleksandar.threedforgemarket.mapper.order.CustomerOrderMapper;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
 import com.aleksandar.threedforgemarket.model.dto.order.CustomerOrderListItemDto;
 import com.aleksandar.threedforgemarket.model.entity.CustomerOrder;
@@ -14,9 +14,9 @@ import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
-import com.aleksandar.threedforgemarket.repository.CustomerOrderRepository;
-import com.aleksandar.threedforgemarket.repository.ProductRepository;
-import com.aleksandar.threedforgemarket.repository.UserRepository;
+import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
+import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
+import com.aleksandar.threedforgemarket.repository.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

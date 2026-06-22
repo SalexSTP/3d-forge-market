@@ -2,7 +2,7 @@ package com.aleksandar.threedforgemarket.config.seed;
 
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
-import com.aleksandar.threedforgemarket.repository.UserRepository;
+import com.aleksandar.threedforgemarket.repository.user.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;

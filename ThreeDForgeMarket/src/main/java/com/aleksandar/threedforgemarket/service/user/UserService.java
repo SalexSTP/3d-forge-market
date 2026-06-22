@@ -8,7 +8,7 @@ import com.aleksandar.threedforgemarket.model.dto.auth.LoginRequest;
 import com.aleksandar.threedforgemarket.model.dto.auth.RegisterRequest;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
-import com.aleksandar.threedforgemarket.repository.UserRepository;
+import com.aleksandar.threedforgemarket.repository.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
