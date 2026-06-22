@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.repository;
+package com.aleksandar.threedforgemarket.repository.order;
 
 import com.aleksandar.threedforgemarket.model.entity.CustomerOrder;
 import org.springframework.data.jpa.repository.EntityGraph;

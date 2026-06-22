@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.mapper;
+package com.aleksandar.threedforgemarket.mapper.order;
 
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
 import com.aleksandar.threedforgemarket.model.dto.order.CustomerOrderListItemDto;

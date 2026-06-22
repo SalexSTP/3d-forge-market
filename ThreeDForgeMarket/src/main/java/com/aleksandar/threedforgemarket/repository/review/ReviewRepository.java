@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.repository;
+package com.aleksandar.threedforgemarket.repository.review;
 
 import com.aleksandar.threedforgemarket.model.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;

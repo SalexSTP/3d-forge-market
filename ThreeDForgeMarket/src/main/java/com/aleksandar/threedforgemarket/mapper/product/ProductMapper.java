@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.mapper;
+package com.aleksandar.threedforgemarket.mapper.product;
 
 import com.aleksandar.threedforgemarket.model.dto.product.ProductCatalogItemDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;

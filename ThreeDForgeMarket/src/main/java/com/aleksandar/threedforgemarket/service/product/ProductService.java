@@ -2,14 +2,14 @@ package com.aleksandar.threedforgemarket.service.product;
 
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
-import com.aleksandar.threedforgemarket.mapper.ProductMapper;
+import com.aleksandar.threedforgemarket.mapper.product.ProductMapper;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductCatalogItemDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
-import com.aleksandar.threedforgemarket.repository.ProductRepository;
+import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;

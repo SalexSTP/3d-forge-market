@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.repository;
+package com.aleksandar.threedforgemarket.repository.product;
 
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;

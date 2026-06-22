@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.repository;
+package com.aleksandar.threedforgemarket.repository.user;
 
 import com.aleksandar.threedforgemarket.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
