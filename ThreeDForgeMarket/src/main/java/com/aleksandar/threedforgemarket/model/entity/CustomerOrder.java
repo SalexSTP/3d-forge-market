@@ -49,6 +49,9 @@ public class CustomerOrder {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Column(nullable = false)
+    private boolean deletedFromCustomerHistory;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
 

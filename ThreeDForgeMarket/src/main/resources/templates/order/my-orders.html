@@ -50,16 +50,34 @@
                 <td data-label="Delivery address" th:text="${order.deliveryAddress}">Address</td>
                 <td data-label="Note" th:text="${order.customerNote != null and !#strings.isEmpty(order.customerNote) ? order.customerNote : '—'}">No note</td>
                 <td data-label="Actions">
-                    <form th:if="${order.cancellable}"
-                          th:action="@{/orders/{id}/cancel(id=${order.id})}"
-                          method="post"
-                          data-confirm="Cancel this order?">
-                        <input type="hidden" name="_method" value="put">
+                    <div class="order-actions">
+                        <form th:if="${order.cancellable}"
+                              th:action="@{/orders/{id}/cancel(id=${order.id})}"
+                              method="post"
+                              data-confirm="Cancel this order?">
+                            <input type="hidden" name="_method" value="put">
 
-                        <button class="btn btn-danger btn-small" type="submit">
-                            Cancel
-                        </button>
-                    </form>
+                            <button class="btn btn-danger btn-small" type="submit">
+                                Cancel
+                            </button>
+                        </form>
+
+                        <form th:if="${order.deletable}"
+                              th:action="@{/orders/{id}(id=${order.id})}"
+                              method="post"
+                              data-confirm="Delete this cancelled order from your history?">
+                            <input type="hidden" name="_method" value="delete">
+
+                            <button class="btn btn-danger btn-small" type="submit">
+                                Delete
+                            </button>
+                        </form>
+
+                        <span class="muted-action"
+                              th:if="${!order.cancellable and !order.deletable}">
+                            No actions
+                        </span>
+                    </div>
                 </td>
             </tr>
             </tbody>

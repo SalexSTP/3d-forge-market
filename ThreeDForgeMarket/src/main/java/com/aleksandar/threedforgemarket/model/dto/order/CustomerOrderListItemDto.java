@@ -26,4 +26,5 @@ public class CustomerOrderListItemDto {
     private final String customerNote;
 
     private final boolean cancellable;
+    private final boolean deletable;
 }

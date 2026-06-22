@@ -32,7 +32,8 @@ public class CustomerOrderMapper {
 
     public CustomerOrderListItemDto toListItemDto(
             CustomerOrder customerOrder,
-            boolean cancellable
+            boolean cancellable,
+            boolean deletable
     ) {
         return CustomerOrderListItemDto.builder()
                 .id(customerOrder.getId())
@@ -45,6 +46,7 @@ public class CustomerOrderMapper {
                 .deliveryAddress(customerOrder.getDeliveryAddress())
                 .customerNote(customerOrder.getCustomerNote())
                 .cancellable(cancellable)
+                .deletable(deletable)
                 .build();
     }
 

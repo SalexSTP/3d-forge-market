@@ -4,6 +4,7 @@ import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.order.CustomerOrderMapper;
@@ -78,11 +79,12 @@ public class CustomerOrderService {
     @Transactional(readOnly = true)
     public List<CustomerOrderListItemDto> getOrdersForCustomer(UUID customerId) {
         return customerOrderRepository
-                .findAllByCustomer_IdOrderByCreatedOnDesc(customerId)
+                .findVisibleForCustomerOrderedByStatus(customerId)
                 .stream()
                 .map(customerOrder -> customerOrderMapper.toListItemDto(
                         customerOrder,
-                        isCancellable(customerOrder.getStatus())
+                        isCancellable(customerOrder.getStatus()),
+                        isDeletable(customerOrder.getStatus())
                 ))
                 .toList();
     }
@@ -102,8 +104,27 @@ public class CustomerOrderService {
         customerOrderRepository.save(customerOrder);
     }
 
+    @Transactional
+    public void deleteOrderFromHistory(UUID customerId, UUID orderId) {
+        CustomerOrder customerOrder = customerOrderRepository
+                .findByIdAndCustomer_Id(orderId, customerId)
+                .orElseThrow(CustomerOrderNotFoundException::new);
+
+        if (!isDeletable(customerOrder.getStatus())) {
+            throw new OrderDeletionNotAllowedException();
+        }
+
+        customerOrder.setDeletedFromCustomerHistory(true);
+
+        customerOrderRepository.save(customerOrder);
+    }
+
     private boolean isCancellable(OrderStatus status) {
         return status == OrderStatus.PENDING
                 || status == OrderStatus.CONFIRMED;
+    }
+
+    private boolean isDeletable(OrderStatus status) {
+        return status == OrderStatus.CANCELLED;
     }
 }

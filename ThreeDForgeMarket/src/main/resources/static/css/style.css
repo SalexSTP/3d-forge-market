@@ -1096,6 +1096,23 @@ tr:last-child td {
     align-items: center;
 }
 
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.order-actions form {
+    margin: 0;
+}
+
+.muted-action {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
 .flash-stack {
     display: grid;
     gap: var(--space-sm);

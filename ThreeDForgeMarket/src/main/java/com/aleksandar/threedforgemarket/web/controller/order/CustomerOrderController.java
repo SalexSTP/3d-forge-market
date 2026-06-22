@@ -3,6 +3,7 @@ package com.aleksandar.threedforgemarket.web.controller.order;
 import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
@@ -152,6 +153,35 @@ public class CustomerOrderController {
 
         } catch (CustomerOrderNotFoundException
                  | OrderCancellationNotAllowedException exception) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage()
+            );
+        }
+
+        return new ModelAndView("redirect:/orders/my");
+    }
+
+    @DeleteMapping("/{id}")
+    public ModelAndView deleteOrderFromHistory(
+            @PathVariable UUID id,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            customerOrderService.deleteOrderFromHistory(
+                    getCurrentUserId(session),
+                    id
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "The cancelled order was removed from your history."
+            );
+
+        } catch (CustomerOrderNotFoundException
+                 | OrderDeletionNotAllowedException exception) {
 
             redirectAttributes.addFlashAttribute(
                     "errorMessage",
