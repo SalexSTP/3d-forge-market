@@ -33,7 +33,10 @@
             <tbody>
             <tr th:each="order : ${orders}">
                 <td data-label="Product">
-                    <a th:href="@{/products/{id}(id=${order.product.id})}" th:text="${order.product.name}">Desk hook</a>
+                    <a th:href="@{/products/{id}(id=${order.productId})}"
+                       th:text="${order.productName}">
+                        Desk hook
+                    </a>
                 </td>
                 <td data-label="Quantity" th:text="${order.quantity}">2</td>
                 <td data-label="Total" th:text="|€${#numbers.formatDecimal(order.totalPrice, 1, 2)}|">€36.00</td>
@@ -47,11 +50,15 @@
                 <td data-label="Delivery address" th:text="${order.deliveryAddress}">Address</td>
                 <td data-label="Note" th:text="${order.customerNote != null and !#strings.isEmpty(order.customerNote) ? order.customerNote : '—'}">No note</td>
                 <td data-label="Actions">
-                    <form th:if="${order.status.name() == 'PENDING' or order.status.name() == 'CONFIRMED'}"
+                    <form th:if="${order.cancellable}"
                           th:action="@{/orders/{id}/cancel(id=${order.id})}"
                           method="post"
                           data-confirm="Cancel this order?">
-                        <button class="btn btn-danger btn-small" type="submit">Cancel</button>
+                        <input type="hidden" name="_method" value="put">
+
+                        <button class="btn btn-danger btn-small" type="submit">
+                            Cancel
+                        </button>
                     </form>
                 </td>
             </tr>

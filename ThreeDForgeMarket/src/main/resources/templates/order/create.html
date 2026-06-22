@@ -36,11 +36,18 @@
               th:attr="data-unit-price=${product.price}">
             <input type="hidden" th:field="*{productId}">
 
+            <p class="field-error"
+               th:if="${#fields.hasErrors('productId')}"
+               th:errors="*{productId}">
+                Product error.
+            </p>
+
             <div class="field">
                 <label for="quantity">Quantity</label>
                 <input id="quantity"
                        type="number"
                        min="1"
+                       max="20"
                        step="1"
                        th:field="*{quantity}"
                        required>

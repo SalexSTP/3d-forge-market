@@ -68,7 +68,7 @@ public class ProductService {
 
     public ProductDetailsDto getAvailableProductDetails(UUID productId) {
         Product product = productRepository.findByIdAndAvailableTrue(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+                .orElseThrow(ProductNotFoundException::new);
 
         return productMapper.toDetailsDto(product);
     }
@@ -149,7 +149,7 @@ public class ProductService {
 
     private Product findProductById(UUID productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+                .orElseThrow(ProductNotFoundException::new);
     }
 
     private void validateProductName(String productName, UUID currentProductId) {

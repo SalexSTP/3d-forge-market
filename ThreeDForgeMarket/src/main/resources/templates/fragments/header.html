@@ -26,7 +26,10 @@
         <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
             <summary th:text="${currentUsername}">customer</summary>
             <div class="nav-dropdown-menu">
-                <a th:href="@{/orders/my}">My orders</a>
+                <a th:if="${isAdmin != true}"
+                   th:href="@{/orders/my}">
+                    My orders
+                </a>
                 <form th:action="@{/logout}" method="post">
                     <button class="dropdown-action" type="submit">Log out</button>
                 </form>
@@ -61,7 +64,10 @@
         <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
             <summary th:text="${currentUsername}">customer</summary>
             <div class="nav-dropdown-menu">
-                <a th:href="@{/orders/my}">My orders</a>
+                <a th:if="${isAdmin != true}"
+                   th:href="@{/orders/my}">
+                    My orders
+                </a>
                 <form th:action="@{/logout}" method="post">
                     <button class="dropdown-action" type="submit">Log out</button>
                 </form>
