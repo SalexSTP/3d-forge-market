@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page not found | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="error-page">
+    <section class="empty-state error-state" aria-labelledby="error-title">
+        <p class="eyebrow">404 &middot; Page not found</p>
+        <h1 id="error-title">We could not find the page you requested.</h1>
+        <p>
+            The page may have moved, been removed, or the address may be incorrect. You can return home
+            or browse available 3D-printed products.
+        </p>
+        <div class="action-row">
+            <a class="btn btn-primary" th:href="@{/}">Return home</a>
+            <a class="btn btn-ghost" th:href="@{/products}">Browse products</a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
