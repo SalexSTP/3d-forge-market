@@ -1107,6 +1107,37 @@ tr:last-child td {
     margin: 0;
 }
 
+.admin-order-actions {
+    display: grid;
+    gap: var(--space-xs);
+    min-width: 240px;
+}
+
+.admin-order-actions form {
+    margin: 0;
+}
+
+.status-update-form {
+    display: grid;
+    grid-template-columns: minmax(145px, 1fr) auto;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.status-update-form select {
+    width: 100%;
+    min-width: 0;
+}
+
+.btn-history-delete {
+    width: 100%;
+    border-color: rgba(180, 35, 24, 0.22);
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    white-space: normal;
+}
+
+.muted-text,
 .muted-action {
     color: var(--color-muted);
     font-size: 0.9rem;
@@ -1256,6 +1287,77 @@ tr:last-child td {
         align-items: start;
         flex-direction: column;
     }
+
+    .admin-orders-table {
+        overflow: visible;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .admin-orders-table table,
+    .admin-orders-table thead,
+    .admin-orders-table tbody,
+    .admin-orders-table tr,
+    .admin-orders-table th,
+    .admin-orders-table td {
+        display: block;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .admin-orders-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .admin-orders-table tr {
+        margin-bottom: var(--space-md);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .admin-orders-table td {
+        display: grid;
+        grid-template-columns: minmax(105px, 34%) minmax(0, 1fr);
+        gap: var(--space-sm);
+        border-bottom: 1px solid var(--color-line);
+        overflow-wrap: anywhere;
+    }
+
+    .admin-orders-table td::before {
+        content: attr(data-label);
+        color: var(--color-muted);
+        font-weight: 900;
+    }
+
+    .admin-orders-table td[data-label="Actions"] {
+        display: block;
+    }
+
+    .admin-orders-table td[data-label="Actions"]::before {
+        display: block;
+        margin-bottom: var(--space-sm);
+    }
+
+    .admin-order-actions {
+        min-width: 0;
+    }
+
+    .status-update-form {
+        grid-template-columns: 1fr;
+    }
+
+    .status-update-form .btn,
+    .btn-history-delete {
+        width: 100%;
+    }
 }
 
 @media (max-width: 640px) {
@@ -1277,6 +1379,10 @@ tr:last-child td {
     .inline-form {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .status-update-form {
+        grid-template-columns: 1fr;
     }
 
     .responsive-table {

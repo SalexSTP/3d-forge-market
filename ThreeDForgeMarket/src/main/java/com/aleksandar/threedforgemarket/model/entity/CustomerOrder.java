@@ -52,6 +52,9 @@ public class CustomerOrder {
     @Column(nullable = false)
     private boolean deletedFromCustomerHistory;
 
+    @Column(nullable = false)
+    private boolean deletedFromAdminHistory;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
 

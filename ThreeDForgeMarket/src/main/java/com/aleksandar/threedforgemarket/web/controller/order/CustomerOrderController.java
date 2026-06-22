@@ -177,7 +177,7 @@ public class CustomerOrderController {
 
             redirectAttributes.addFlashAttribute(
                     "successMessage",
-                    "The cancelled order was removed from your history."
+                    "The order was removed from your history."
             );
 
         } catch (CustomerOrderNotFoundException

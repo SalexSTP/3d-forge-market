@@ -1,13 +1,10 @@
 package com.aleksandar.threedforgemarket.service.order;
 
 import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
-import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
-import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
-import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
-import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
-import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
+import com.aleksandar.threedforgemarket.exception.order.*;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.order.CustomerOrderMapper;
+import com.aleksandar.threedforgemarket.model.dto.order.AdminOrderListItemDto;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
 import com.aleksandar.threedforgemarket.model.dto.order.CustomerOrderListItemDto;
 import com.aleksandar.threedforgemarket.model.entity.CustomerOrder;
@@ -119,12 +116,83 @@ public class CustomerOrderService {
         customerOrderRepository.save(customerOrder);
     }
 
+    @Transactional(readOnly = true)
+    public List<AdminOrderListItemDto> getAllOrdersForAdmin() {
+        return customerOrderRepository.findAllForAdminOrderedByStatus()
+                .stream()
+                .map(customerOrder -> customerOrderMapper.toAdminListItemDto(
+                        customerOrder,
+                        getAvailableStatusUpdates(customerOrder.getStatus()),
+                        isDeletable(customerOrder.getStatus())
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public void updateOrderStatus(
+            UUID orderId,
+            OrderStatus requestedStatus
+    ) {
+        CustomerOrder customerOrder = customerOrderRepository.findById(orderId)
+                .orElseThrow(CustomerOrderNotFoundException::new);
+
+        if (!getAvailableStatusUpdates(customerOrder.getStatus())
+                .contains(requestedStatus)) {
+            throw new OrderStatusUpdateNotAllowedException();
+        }
+
+        customerOrder.setStatus(requestedStatus);
+
+        customerOrderRepository.save(customerOrder);
+    }
+
+    @Transactional
+    public void deleteOrderFromAdminHistory(UUID orderId) {
+        CustomerOrder customerOrder = customerOrderRepository.findById(orderId)
+                .orElseThrow(CustomerOrderNotFoundException::new);
+
+        if (!isDeletable(customerOrder.getStatus())) {
+            throw new OrderDeletionNotAllowedException();
+        }
+
+        customerOrder.setDeletedFromAdminHistory(true);
+
+        customerOrderRepository.save(customerOrder);
+    }
+
     private boolean isCancellable(OrderStatus status) {
         return status == OrderStatus.PENDING
                 || status == OrderStatus.CONFIRMED;
     }
 
     private boolean isDeletable(OrderStatus status) {
-        return status == OrderStatus.CANCELLED;
+        return status == OrderStatus.DELIVERED
+                || status == OrderStatus.CANCELLED;
+    }
+
+    private List<OrderStatus> getAvailableStatusUpdates(
+            OrderStatus currentStatus
+    ) {
+        return switch (currentStatus) {
+            case PENDING -> List.of(
+                    OrderStatus.CONFIRMED,
+                    OrderStatus.CANCELLED
+            );
+
+            case CONFIRMED -> List.of(
+                    OrderStatus.PRINTING,
+                    OrderStatus.CANCELLED
+            );
+
+            case PRINTING -> List.of(
+                    OrderStatus.READY_FOR_DELIVERY
+            );
+
+            case READY_FOR_DELIVERY -> List.of(
+                    OrderStatus.DELIVERED
+            );
+
+            case DELIVERED, CANCELLED -> List.of();
+        };
     }
 }

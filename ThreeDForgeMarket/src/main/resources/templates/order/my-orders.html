@@ -65,7 +65,7 @@
                         <form th:if="${order.deletable}"
                               th:action="@{/orders/{id}(id=${order.id})}"
                               method="post"
-                              data-confirm="Delete this cancelled order from your history?">
+                              data-confirm="Remove this delivered or cancelled order from your history?">
                             <input type="hidden" name="_method" value="delete">
 
                             <button class="btn btn-danger btn-small" type="submit">
