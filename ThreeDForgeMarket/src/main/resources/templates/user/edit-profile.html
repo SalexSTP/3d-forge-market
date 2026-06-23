@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit profile | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="narrow-page">
+    <section class="page-heading">
+        <p class="eyebrow">Account</p>
+        <h1>Edit profile</h1>
+    </section>
+
+    <form class="form-card"
+          th:action="@{/profile}"
+          th:object="${editProfileRequest}"
+          method="post">
+
+        <input type="hidden" name="_method" value="put">
+
+        <div th:replace="~{fragments/messages :: messages}"></div>
+
+        <div class="field">
+            <label for="username">Username</label>
+            <input id="username"
+                   type="text"
+                   th:field="*{username}"
+                   minlength="3"
+                   maxlength="30"
+                   required>
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('username')}"
+               th:errors="*{username}">
+                Username error.
+            </p>
+        </div>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email"
+                   type="email"
+                   th:field="*{email}"
+                   maxlength="100"
+                   required>
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('email')}"
+               th:errors="*{email}">
+                Email error.
+            </p>
+        </div>
+
+        <div class="action-row">
+            <button class="btn btn-primary" type="submit">
+                Save changes
+            </button>
+            <a class="btn btn-ghost" th:href="@{/profile}">
+                Cancel
+            </a>
+        </div>
+    </form>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

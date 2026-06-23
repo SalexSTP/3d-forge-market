@@ -26,6 +26,9 @@
         <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
             <summary th:text="${currentUsername}">customer</summary>
             <div class="nav-dropdown-menu">
+                <a th:href="@{/profile}">
+                    My profile
+                </a>
                 <a th:if="${isAdmin != true}"
                    th:href="@{/orders/my}">
                     My orders
@@ -64,6 +67,9 @@
         <details class="nav-dropdown user-dropdown" th:if="${isAuthenticated == true}">
             <summary th:text="${currentUsername}">customer</summary>
             <div class="nav-dropdown-menu">
+                <a th:href="@{/profile}">
+                    My profile
+                </a>
                 <a th:if="${isAdmin != true}"
                    th:href="@{/orders/my}">
                     My orders

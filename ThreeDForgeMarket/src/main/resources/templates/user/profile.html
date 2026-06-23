@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My profile | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="narrow-page">
+    <section class="page-heading">
+        <p class="eyebrow">Account</p>
+        <h1>My profile</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="form-card" aria-labelledby="profile-details-title">
+        <h2 id="profile-details-title">Profile details</h2>
+
+        <dl class="details-specs">
+            <div>
+                <dt>Username</dt>
+                <dd th:text="${profile.username}">customer</dd>
+            </div>
+            <div>
+                <dt>Email</dt>
+                <dd th:text="${profile.email}">customer@example.com</dd>
+            </div>
+            <div>
+                <dt>Role</dt>
+                <dd th:text="${#strings.capitalize(#strings.toLowerCase(profile.role.name()))}">Customer</dd>
+            </div>
+            <div>
+                <dt>Created</dt>
+                <dd>
+                    <time th:datetime="${#temporals.format(profile.createdOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(profile.createdOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                </dd>
+            </div>
+            <div>
+                <dt>Last login</dt>
+                <dd>
+                    <time th:if="${profile.lastLoginOn != null}"
+                          th:datetime="${#temporals.format(profile.lastLoginOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(profile.lastLoginOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 12:00
+                    </time>
+
+                    <span th:if="${profile.lastLoginOn == null}"
+                          class="muted-text">
+                        No login recorded yet
+                    </span>
+                </dd>
+            </div>
+        </dl>
+
+        <div class="action-row">
+            <a class="btn btn-primary" th:href="@{/profile/edit}">
+                Edit profile
+            </a>
+            <a class="btn btn-ghost" th:href="@{/}">
+                Return home
+            </a>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
