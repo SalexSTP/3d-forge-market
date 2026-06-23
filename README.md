@@ -107,6 +107,7 @@ Customers can:
 * Remove eligible completed or cancelled orders from their own history
 * Submit one review per product after at least one delivered order
 * Edit or delete only their own reviews
+* View and update their own profile information
 
 ### Administrator
 
@@ -118,6 +119,7 @@ Administrators can:
 * Update order statuses through the allowed workflow
 * Remove eligible completed or cancelled orders from the admin history
 * View and delete customer reviews
+* View and update their own profile information
 
 ## Implemented Functionalities
 
@@ -226,6 +228,30 @@ Review functionality includes:
 
 <img width="1306" height="364" alt="Admin review moderation page with product reviews and delete actions" src="https://github.com/user-attachments/assets/05144d63-e805-4204-b01f-61dde6b8af25" />
 
+### Profile Management
+
+Every authenticated user can access a personal profile page from the username dropdown in the navigation menu.
+
+The profile page displays:
+
+* Username
+* Email
+* Role
+* Account creation date
+* Last login date
+
+Users can update only their own username and email address.
+
+Profile updates include server-side validation and uniqueness checks for both username and email. Passwords, roles, internal UUIDs, account creation dates, and login history cannot be edited through the profile form.
+
+#### My Profile
+
+<img width="1072" height="618" alt="Authenticated user profile page with account details" src="https://github.com/user-attachments/assets/177a9d38-e82f-4180-a99b-2c7ad8d38fb1" />
+
+#### Edit Profile
+
+<img width="1040" height="501" alt="Edit profile page with username and email fields" src="https://github.com/user-attachments/assets/3c31d644-11ec-4a86-b1de-fc36cc5d2fc6" />
+
 ## Main Pages
 
 | Route                           | Purpose                          |
@@ -233,6 +259,8 @@ Review functionality includes:
 | `/`                             | Home page with featured products |
 | `/auth/login`                   | Login                            |
 | `/auth/register`                | Registration                     |
+| `/profile`                      | Authenticated user profile       |
+| `/profile/edit`                 | Edit authenticated user profile  |
 | `/products`                     | Public product catalogue         |
 | `/products/{id}`                | Product details and reviews      |
 | `/orders/create?productId={id}` | Customer order creation          |
@@ -250,6 +278,8 @@ Review functionality includes:
 The application uses session-based authentication.
 
 After a successful login, the authenticated user’s identifier is stored in the HTTP session as `user_id`. Access to customer and administrator pages is controlled through session validation and role checks.
+
+The profile feature allows authenticated users to update only their own username and email address. The backend uses the session user ID rather than a client-provided user identifier, so users cannot edit another account through URL manipulation or hidden form values.
 
 Passwords are stored only as BCrypt hashes. Plain-text passwords must never be stored, logged, or committed to the repository.
 
