@@ -78,6 +78,12 @@ public class ProductService {
         return productMapper.toDetailsDto(product);
     }
 
+    public ProductDetailsDto getProductDetailsForAdmin(UUID productId) {
+        Product product = findProductById(productId);
+
+        return productMapper.toDetailsDto(product);
+    }
+
     public List<ProductCatalogItemDto> getFeaturedProducts() {
         return productRepository.findTop3ByAvailableTrueOrderByCreatedOnDesc()
                 .stream()

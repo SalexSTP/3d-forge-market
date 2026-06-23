@@ -121,7 +121,11 @@
                          th:alt="${product.name}">
                 </td>
                 <td data-label="Name">
-                    <strong class="table-product-name" th:text="${product.name}">Cable clip</strong>
+                    <a class="table-product-name"
+                       th:href="@{/admin/products/{id}(id=${product.id})}"
+                       th:text="${product.name}">
+                        Cable clip
+                    </a>
                 </td>
                 <td data-label="Category" th:text="${product.productCategory.displayName}">Accessory</td>
                 <td data-label="Material" th:text="${product.material.displayName}">PETG</td>

@@ -55,7 +55,12 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
                 OR p.price <= :maxPrice)
           AND (:available IS NULL
                 OR p.available = :available)
-        ORDER BY p.createdOn DESC
+        ORDER BY
+            CASE
+                WHEN p.available = true THEN 1
+                ELSE 2
+            END,
+            p.createdOn DESC
         """)
     List<Product> findAllForAdmin(
             @Param("search") String search,

@@ -27,6 +27,7 @@ public class AdminOrderListItemDto {
     private final String customerNote;
 
     private final LocalDateTime createdOn;
+    private final LocalDateTime updatedOn;
     private final OrderStatus status;
 
     private final List<OrderStatus> availableStatusUpdates;

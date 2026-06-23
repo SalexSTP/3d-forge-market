@@ -25,6 +25,7 @@
                 <th>Total</th>
                 <th>Status</th>
                 <th>Created</th>
+                <th>Updated</th>
                 <th>Delivery address</th>
                 <th>Note</th>
                 <th>Actions</th>
@@ -47,6 +48,18 @@
                     </span>
                 </td>
                 <td data-label="Created" th:text="${#temporals.format(order.createdOn, 'dd MMM yyyy HH:mm')}">21 Jun 2026 10:00</td>
+                <td data-label="Updated">
+                    <time th:if="${order.updatedOn != null and !order.updatedOn.equals(order.createdOn)}"
+                          th:datetime="${#temporals.format(order.updatedOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(order.updatedOn, 'dd MMM yyyy HH:mm')}">
+                        21 Jun 2026 12:00
+                    </time>
+
+                    <span th:if="${order.updatedOn == null or order.updatedOn.equals(order.createdOn)}"
+                          class="muted-text">
+                        Not updated
+                    </span>
+                </td>
                 <td data-label="Delivery address" th:text="${order.deliveryAddress}">Address</td>
                 <td data-label="Note" th:text="${order.customerNote != null and !#strings.isEmpty(order.customerNote) ? order.customerNote : '—'}">No note</td>
                 <td data-label="Actions">

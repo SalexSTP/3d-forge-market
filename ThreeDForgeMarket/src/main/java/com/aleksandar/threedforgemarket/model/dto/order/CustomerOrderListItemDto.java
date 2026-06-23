@@ -21,6 +21,7 @@ public class CustomerOrderListItemDto {
     private final OrderStatus status;
 
     private final LocalDateTime createdOn;
+    private final LocalDateTime updatedOn;
 
     private final String deliveryAddress;
     private final String customerNote;
