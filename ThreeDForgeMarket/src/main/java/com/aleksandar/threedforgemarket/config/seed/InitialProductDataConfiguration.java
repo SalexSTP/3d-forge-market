@@ -10,13 +10,16 @@ import org.springframework.context.annotation.Configuration;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Configuration
 public class InitialProductDataConfiguration {
     @Bean
     public CommandLineRunner seedProducts(ProductRepository productRepository) {
         return arguments -> {
+            if (productRepository.count() > 0) {
+                return;
+            }
+
             Product cableOrganizer = Product.builder()
                     .name("Desktop Cable Organizer")
                     .description("A compact cable organizer designed to keep charging cables neat and accessible on a desk.")
@@ -51,19 +54,10 @@ public class InitialProductDataConfiguration {
                     .available(true)
                     .build();
 
-            List<String> existingProductNames = productRepository.findAll()
-                    .stream()
-                    .map(Product::getName)
-                    .toList();
-
-            List<Product> productsToSeed = Stream.of(
+            productRepository.saveAll(List.of(
                     cableOrganizer,
                     invisibleMountHook
-            )
-                    .filter(product -> !existingProductNames.contains(product.getName()))
-                    .toList();
-
-            productRepository.saveAll(productsToSeed);
+            ));
         };
     }
 }
