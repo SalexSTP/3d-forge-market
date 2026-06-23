@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -38,10 +36,6 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
-    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<CustomerOrder> orders = new ArrayList<>();
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
 
@@ -52,10 +46,5 @@ public class User {
         if (createdOn == null) {
             createdOn = LocalDateTime.now();
         }
-    }
-
-    public void addOrder(CustomerOrder order) {
-        orders.add(order);
-        order.setCustomer(this);
     }
 }
