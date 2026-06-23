@@ -9,7 +9,7 @@
     <nav aria-label="Footer navigation">
         <a th:href="@{/products}">Catalog</a>
         <a th:href="@{/auth/register}" th:if="${isAuthenticated != true}">Create account</a>
-        <a th:href="@{/orders/my}" th:if="${isAuthenticated == true}">My orders</a>
+        <a th:href="@{/orders/my}" th:if="${isAuthenticated == true and isAdmin != true}">My orders</a>
     </nav>
 </footer>
 </body>
