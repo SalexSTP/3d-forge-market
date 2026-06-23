@@ -58,4 +58,6 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, UU
                 customerOrder.createdOn DESC
             """)
     List<CustomerOrder> findAllForAdminOrderedByStatus();
+
+    boolean existsByProduct_Id(UUID productId);
 }

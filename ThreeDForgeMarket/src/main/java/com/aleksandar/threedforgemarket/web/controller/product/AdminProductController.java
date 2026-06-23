@@ -1,6 +1,8 @@
 package com.aleksandar.threedforgemarket.web.controller.product;
 
+import com.aleksandar.threedforgemarket.exception.order.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
+import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
 import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
@@ -159,12 +161,22 @@ public class AdminProductController {
             @PathVariable UUID id,
             RedirectAttributes redirectAttributes
     ) {
-        productService.deleteProduct(id);
+        try {
+            productService.deleteProduct(id);
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "Product was deleted successfully."
-        );
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Product was deleted successfully."
+            );
+
+        } catch (ProductDeletionNotAllowedException
+                 | ProductNotFoundException exception) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage()
+            );
+        }
 
         return new ModelAndView("redirect:/admin/products");
     }

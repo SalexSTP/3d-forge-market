@@ -1,5 +1,6 @@
 package com.aleksandar.threedforgemarket.service.product;
 
+import com.aleksandar.threedforgemarket.exception.order.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.product.ProductMapper;
@@ -9,6 +10,7 @@ import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
+import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +25,12 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+    private final CustomerOrderRepository customerOrderRepository;
+
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, CustomerOrderRepository customerOrderRepository) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.customerOrderRepository = customerOrderRepository;
     }
 
     public List<ProductCatalogItemDto> getAvailableProducts(
@@ -143,6 +148,10 @@ public class ProductService {
     @Transactional
     public void deleteProduct(UUID productId) {
         Product product = findProductById(productId);
+
+        if (customerOrderRepository.existsByProduct_Id(productId)) {
+            throw new ProductDeletionNotAllowedException();
+        }
 
         productRepository.delete(product);
     }

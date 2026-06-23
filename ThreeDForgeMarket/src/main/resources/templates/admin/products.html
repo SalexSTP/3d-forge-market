@@ -145,7 +145,7 @@
                         </form>
                         <form th:action="@{/admin/products/{id}(id=${product.id})}"
                               method="post"
-                              data-confirm="Delete this product permanently?">
+                              data-confirm="Delete this product permanently? Products with order history cannot be deleted; hide them instead.">
                             <input type="hidden" name="_method" value="delete">
 
                             <button class="btn btn-danger btn-small" type="submit">
