@@ -1,10 +1,8 @@
 # 3DForgeMarket
 
-3DForgeMarket is a web application for browsing and ordering 3D-printed products. It is designed as a small online 3D-print shop where customers can explore available products, place orders, track their own orders, and leave reviews after successful delivery.
+3DForgeMarket is a Spring Boot web application for browsing and ordering 3D-printed products.
 
-Administrators manage the product catalogue, review all customer orders, update printing and delivery statuses, and moderate product reviews.
-
-> Project status: under development.
+Guests can explore the catalogue and product details. Customers can place orders, manage their own order history, and review products after successful delivery. Administrators manage products, customer orders, order-status progression, and review moderation.
 
 ## Technology Stack
 
@@ -17,7 +15,9 @@ Administrators manage the product catalogue, review all customer orders, update 
 * Spring Validation
 * MySQL
 * Lombok
+* BCrypt password hashing
 * HTML, CSS, and minimal vanilla JavaScript
+* Local GLB preview support through `model-viewer`
 * Git and GitHub
 
 ## Main Entities
@@ -35,19 +35,16 @@ Main data:
 * Account creation date
 * Last login date
 
-A user can have multiple customer orders.
-
 ### Product
 
-Represents a 3D-printed product available in the catalogue.
+Represents a 3D-printed product in the catalogue.
 
 Main data:
 
-* Name
-* Description
+* Name and description
 * Price in EUR
 * Product image URL
-* Optional printable-model URL
+* Optional public GLB preview URL
 * Estimated print time
 * Width, height, and depth in centimeters
 * Estimated weight in grams
@@ -59,7 +56,7 @@ Main data:
 
 ### CustomerOrder
 
-Represents an order made by a customer for one product.
+Represents an order created by a customer for one product.
 
 Main data:
 
@@ -68,23 +65,24 @@ Main data:
 * Quantity
 * Delivery address
 * Optional customer note
-* Total price in EUR
+* Server-calculated total price in EUR
 * Order status
+* Customer/admin history visibility settings
 * Creation and update dates
 
 ### Review
 
-Represents customer feedback for a product.
+Represents customer feedback for a delivered product.
 
 Main data:
 
 * Product
 * Author
-* Rating
+* Rating from 1 to 5
 * Comment
 * Creation and update dates
 
-A customer can leave only one review for the same product.
+A customer can submit only one review for the same product.
 
 ## User Roles and Permissions
 
@@ -93,140 +91,224 @@ A customer can leave only one review for the same product.
 Guests can:
 
 * View the home page
-* Browse the product catalogue
-* View product details
+* Browse the available product catalogue
+* Search and filter products
+* View product details and public reviews
 * Register
 * Log in
 
 ### Customer
 
-Logged-in customers can:
+Customers can:
 
 * Place orders for available products
-* View only their own orders
+* View only their own order history
 * Cancel eligible orders
-* View product reviews
-* Create, edit, and delete their own reviews when allowed
+* Remove eligible completed or cancelled orders from their own history
+* Submit one review per product after at least one delivered order
+* Edit or delete only their own reviews
 
 ### Administrator
 
 Administrators can:
 
+* Create, edit, hide, show, and delete eligible products
+* Search and filter all products, including hidden products
+* View all customer orders
+* Update order statuses through the allowed workflow
+* Remove eligible completed or cancelled orders from the admin history
+* View and delete customer reviews
+
+## Implemented Functionalities
+
+### Home Page and Product Discovery
+
+The home page presents the marketplace identity and featured available products.
+
+#### Home Page
+
+The home page introduces 3DForgeMarket and highlights recently available products for guests and authenticated users.
+
+<img width="1919" height="920" alt="3DForgeMarket home page with featured products" src="https://github.com/user-attachments/assets/edbcc2d5-5f80-4f58-9877-2181d490f1d0" />
+
+#### Product Catalogue
+
+Guests and authenticated users can browse the public catalogue, search products by name, and filter products by category.
+
+<img width="1919" height="919" alt="Product catalogue with search and category filtering" src="https://github.com/user-attachments/assets/bb5390c2-1ba5-4a64-83fd-0e2645d33c4e" />
+
+### Product Details and 3D Preview
+
+Each product details page displays product information such as:
+
+* Description
+* Price
+* Dimensions
+* Weight
+* Material
+* Colour description
+* Estimated print time
+* Availability
+* Product image
+* Optional public GLB 3D preview
+
+Public reviews are shown on the product-details page and are ordered by highest rating first. Reviews with equal ratings are ordered newest first.
+
+#### Product Details and GLB Preview
+
+<img width="1628" height="840" alt="Product details page with product information and GLB 3D preview" src="https://github.com/user-attachments/assets/17c7b54d-491d-4c8d-8280-1fb5789ef344" />
+
+#### Customer Reviews on Product Details
+
+<img width="1361" height="780" alt="Product details page showing customer reviews and star ratings" src="https://github.com/user-attachments/assets/0fde946e-e094-4480-85da-3ae32d91ce61" />
+
+### Product Management
+
+Administrators can manage products through full CRUD functionality:
+
 * Create products
 * Edit products
-* Change product availability
-* Delete products
-* View every customer order
-* Update order statuses
-* View and moderate reviews
+* Hide or show products
+* Search and filter products
+* Delete products that have no order history
 
-## Planned Functionalities
+Products with existing orders cannot be deleted. They must be hidden instead, preserving historical order data.
 
-### Product Catalogue Management
+#### Admin Product Management
 
-Administrators can create, edit, hide, show, and delete products.
-
-Each product includes 3D-print-specific information such as material, dimensions, estimated weight, print duration, colour description, image URL, and optional model URL.
-
-### Product Browsing
-
-Guests and logged-in users can browse available products, search by name, and filter products by category.
+<img width="1919" height="791" alt="Admin product management page with filters and product actions" src="https://github.com/user-attachments/assets/c8ef2f5d-97ae-43b0-8d59-c0d0ca042dc5" />
 
 ### Customer Orders
 
-Customers can place an order for an available product by selecting a quantity and providing a delivery address.
+Customers can place orders for available products by selecting a quantity, entering a delivery address, and optionally adding a customer note.
 
-The total price is calculated on the server based on the product price and selected quantity.
+The total price is calculated on the server using the current product price and selected quantity.
 
-### Customer Order History
-
-Customers can view only their own orders and cancel orders only when the current status allows cancellation.
-
-### Admin Order Management
-
-Administrators can view all customer orders and update their status through the printing and delivery workflow:
+Customers can cancel orders only while the status is:
 
 * Pending
 * Confirmed
-* Printing
-* Ready for Delivery
-* Delivered
-* Cancelled
+
+Customers can remove eligible delivered or cancelled orders from their own order-history view.
+
+#### Customer Order History
+
+<img width="1339" height="311" alt="Customer order history with order statuses and actions" src="https://github.com/user-attachments/assets/27ce4768-78a2-4b57-9269-bdc4f55e4fb0" />
+
+### Admin Order Management
+
+Administrators can view all customer orders and update their statuses through the allowed workflow:
+
+* Pending → Confirmed or Cancelled
+* Confirmed → Printing or Cancelled
+* Printing → Ready for Delivery
+* Ready for Delivery → Delivered
+* Delivered and Cancelled orders cannot be updated further
+
+#### Admin Order Management
+
+<img width="1254" height="574" alt="Admin order management page with status update controls" src="https://github.com/user-attachments/assets/17298e20-7419-4afe-b1d0-aec432bd3a83" />
 
 ### Product Reviews
 
-Customers can leave a review for a delivered product.
+Customers can review a product only after at least one delivered order for that product.
 
-Customers can edit or delete only their own reviews. Administrators can remove inappropriate reviews.
+Review functionality includes:
 
-## Planned Pages
+* Rating validation from 1 to 5
+* Comment-length validation
+* One review per customer per product
+* Customer edit and delete actions for their own reviews
+* Administrator review moderation through deletion
+* Star-based rating presentation
 
-* `/` — Home page
-* `/auth/login` — Login page
-* `/auth/register` — Registration page
-* `/products` — Product catalogue
-* `/products/{id}` — Product details
-* `/orders/create` — Create order page
-* `/orders/my` — Current customer order history
-* `/reviews/{id}/edit` — Edit review page
-* `/admin/products` — Product management page
-* `/admin/products/new` — Create product page
-* `/admin/products/{id}/edit` — Edit product page
-* `/admin/orders` — Admin order-management page
-* `/admin/reviews` — Review-moderation page
+#### Admin Review Moderation
+
+<img width="1306" height="364" alt="Admin review moderation page with product reviews and delete actions" src="https://github.com/user-attachments/assets/05144d63-e805-4204-b01f-61dde6b8af25" />
+
+## Main Pages
+
+| Route                           | Purpose                          |
+| ------------------------------- | -------------------------------- |
+| `/`                             | Home page with featured products |
+| `/auth/login`                   | Login                            |
+| `/auth/register`                | Registration                     |
+| `/products`                     | Public product catalogue         |
+| `/products/{id}`                | Product details and reviews      |
+| `/orders/create?productId={id}` | Customer order creation          |
+| `/orders/my`                    | Customer order history           |
+| `/reviews/new?productId={id}`   | Create review                    |
+| `/reviews/{id}/edit`            | Edit own review                  |
+| `/admin/products`               | Product management               |
+| `/admin/products/new`           | Create product                   |
+| `/admin/products/{id}/edit`     | Edit product                     |
+| `/admin/orders`                 | Admin order management           |
+| `/admin/reviews`                | Admin review moderation          |
 
 ## Security Approach
 
 The application uses session-based authentication.
 
-After a successful login, the authenticated user's identifier is stored in the HTTP session. Access to customer and administrator pages is controlled according to the current session user and their assigned role.
+After a successful login, the authenticated user’s identifier is stored in the HTTP session as `user_id`. Access to customer and administrator pages is controlled through session validation and role checks.
 
-Passwords are stored only as hashed values. Plain-text passwords must never be stored, logged, or committed to the repository.
+Passwords are stored only as BCrypt hashes. Plain-text passwords must never be stored, logged, or committed to the repository.
+
+## Error Handling
+
+The application provides custom Thymeleaf error pages for common browser-facing errors, including:
+
+* 403 Forbidden
+* 404 Not Found
+* 500 Internal Server Error
+
+Business constraints are enforced in the service layer through custom exceptions. Form validation errors are displayed next to the relevant fields.
 
 ## Database Configuration
 
-The application uses MySQL with Spring Data JPA.
+The application uses MySQL and Spring Data JPA.
 
-Database connection values are configured through environment variables. At minimum, configure:
-
-```text
-DB_USERNAME
-DB_PASSWORD
-```
-
-The local database configuration is defined in:
+Set these environment variables before starting the application:
 
 ```text
-src/main/resources/application.properties
+DB_USERNAME=your_mysql_username
+DB_PASSWORD=your_mysql_password
+ADMIN_PASSWORD=your_local_admin_password
 ```
 
-Do not commit database passwords, API keys, access tokens, or other sensitive values to the public repository.
+Optional administrator seed overrides:
+
+```text
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=admin@3dforgemarket.local
+```
+
+When `ADMIN_PASSWORD` is configured, the application creates an administrator account only when that username and email do not already exist.
+
+Initial products are seeded only when the products table is empty.
+
+Do not commit database passwords, administrator passwords, API keys, access tokens, or other local secrets.
 
 ## Running the Application Locally
 
 1. Install Java 17.
 2. Install and start MySQL.
-3. Create or configure the local project database.
-4. Set the required environment variables:
+3. Create the local database used by the application.
+4. Set the required environment variables.
+5. Start the application.
 
-```text
-DB_USERNAME=your_mysql_username
-DB_PASSWORD=your_mysql_password
-```
-
-5. Start the application with Maven:
+macOS/Linux:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-6. Open the application in a browser:
+Open the application in a browser:
 
 ```text
 http://localhost:8080
@@ -236,15 +318,25 @@ http://localhost:8080
 
 Product images and public GLB preview models are stored in a public Supabase Storage bucket.
 
-The bucket is organized into two folders:
+The bucket uses two folders:
 
-- `images/` — product images
-- `models/` — public GLB product preview models
+```text
+images/  → product images
+models/  → public GLB preview models
+```
 
-The database stores the public URLs for these files in `imageUrl` and `modelUrl`.
+The database stores public asset URLs in the `imageUrl` and `modelUrl` fields.
 
-Because the bucket is public, anyone with an asset URL can access it. Only public preview assets should be uploaded there.
+Because the storage bucket is public, only public preview assets should be uploaded. Printable source files and private assets should not be stored there.
 
-## Notes
+## Project Notes
 
-This project is an original Spring Fundamentals course project. The application is being developed incrementally with focus on clear MVC structure, validation, role-based access control, simple entity relationships, and maintainable code.
+This project was built as an original Spring Fundamentals individual project with a focus on:
+
+* Clear MVC structure
+* DTO-based form handling
+* Server-side validation
+* Custom business exceptions
+* Role-based access control
+* Simple JPA relationships
+* Maintainable package organization
