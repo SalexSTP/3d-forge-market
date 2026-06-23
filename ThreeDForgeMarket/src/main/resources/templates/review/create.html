@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit review | 3DForgeMarket</title>
+    <title>Add review | 3DForgeMarket</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -13,18 +13,17 @@
 <main class="narrow-page">
     <section class="page-heading">
         <p class="eyebrow">Review</p>
-        <h1>Edit review</h1>
+        <h1>Add review</h1>
     </section>
 
     <form class="form-card"
-          th:action="@{/reviews/{id}(id=${reviewForm.id})}"
+          th:action="@{/reviews}"
           th:object="${reviewForm}"
           method="post">
 
-        <input type="hidden" name="_method" value="put">
-        <input type="hidden" th:field="*{productId}">
-
         <div th:replace="~{fragments/messages :: messages}"></div>
+
+        <input type="hidden" th:field="*{productId}">
 
         <p class="field-error"
            th:if="${#fields.hasErrors('productId')}"
@@ -74,7 +73,7 @@
         <div class="action-row">
             <button class="btn btn-primary"
                     type="submit">
-                Save changes
+                Submit review
             </button>
 
             <a class="btn btn-ghost"

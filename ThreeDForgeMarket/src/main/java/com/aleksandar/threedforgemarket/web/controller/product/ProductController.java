@@ -1,24 +1,34 @@
 package com.aleksandar.threedforgemarket.web.controller.product;
 
+import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
+import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
+import com.aleksandar.threedforgemarket.service.user.UserService;
 import com.aleksandar.threedforgemarket.service.product.ProductService;
+import com.aleksandar.threedforgemarket.service.review.ReviewService;
+import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/products")
 public class ProductController {
-    private final ProductService productService;
 
-    public ProductController(ProductService productService) {
+    private final ProductService productService;
+    private final ReviewService reviewService;
+    private final UserService userService;
+
+    public ProductController(
+            ProductService productService,
+            ReviewService reviewService,
+            UserService userService
+    ) {
         this.productService = productService;
+        this.reviewService = reviewService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -33,7 +43,7 @@ public class ProductController {
                 productService.getAvailableProducts(search, category)
         );
 
-        modelAndView.addObject("categories",  ProductCategory.values());
+        modelAndView.addObject("categories", ProductCategory.values());
         modelAndView.addObject("search", search);
         modelAndView.addObject("selectedCategory", category);
 
@@ -41,18 +51,42 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ModelAndView getProductDetailsPage(@PathVariable UUID id) {
+    public ModelAndView getProductDetailsPage(
+            @PathVariable UUID id,
+            @SessionAttribute(
+                    name = AuthController.USER_ID_SESSION_ATTRIBUTE,
+                    required = false
+            ) UUID currentUserId
+    ) {
+        ProductDetailsDto product = isAdmin(currentUserId)
+                ? productService.getProductDetailsForAdmin(id)
+                : productService.getAvailableProductDetails(id);
+
         ModelAndView modelAndView = new ModelAndView("product/details");
 
+        modelAndView.addObject("product", product);
         modelAndView.addObject(
-                "product",
-                productService.getAvailableProductDetails(id)
+                "reviews",
+                reviewService.getReviewsForProduct(product.getId())
+        );
+        modelAndView.addObject(
+                "canReview",
+                reviewService.canCustomerReview(
+                        currentUserId,
+                        product.getId()
+                )
         );
 
-        //TODO: Add Reviews
-        modelAndView.addObject("reviews", List.of());
-        modelAndView.addObject("canReview", false);
-
         return modelAndView;
+    }
+
+    private boolean isAdmin(UUID currentUserId) {
+        if (currentUserId == null) {
+            return false;
+        }
+
+        return userService.findById(currentUserId)
+                .map(user -> user.getRole() == UserRole.ADMIN)
+                .orElse(false);
     }
 }

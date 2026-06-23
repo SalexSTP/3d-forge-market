@@ -69,6 +69,13 @@ public class SessionInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        if ((requestPath.equals("/reviews") || requestPath.startsWith("/reviews/"))
+                && currentUser.get().getRole() != UserRole.CUSTOMER) {
+
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
+
         return true;
     }
 

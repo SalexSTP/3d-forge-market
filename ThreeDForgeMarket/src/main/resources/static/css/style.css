@@ -636,6 +636,29 @@ main {
     color: #8a4b00;
 }
 
+.rating-stars {
+    gap: 0.15rem;
+    letter-spacing: 0;
+}
+
+.rating-star-row {
+    display: inline-flex;
+    gap: 0.08rem;
+    line-height: 1;
+}
+
+.rating-star {
+    font-size: 0.95rem;
+}
+
+.rating-star-filled {
+    color: #a15c00;
+}
+
+.rating-star-empty {
+    color: #8c7a62;
+}
+
 .meta-grid,
 .spec-list,
 .details-specs {

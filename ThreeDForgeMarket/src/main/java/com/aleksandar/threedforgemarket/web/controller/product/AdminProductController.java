@@ -15,7 +15,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -79,17 +78,7 @@ public class AdminProductController {
 
     @GetMapping("/{id}")
     public ModelAndView getProductDetailsPage(@PathVariable UUID id) {
-        ModelAndView modelAndView = new ModelAndView("product/details");
-
-        modelAndView.addObject(
-                "product",
-                productService.getProductDetailsForAdmin(id)
-        );
-
-        modelAndView.addObject("reviews", List.of());
-        modelAndView.addObject("canReview", false);
-
-        return modelAndView;
+        return new ModelAndView("redirect:/products/" + id);
     }
 
     @PostMapping

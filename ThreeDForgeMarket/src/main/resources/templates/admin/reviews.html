@@ -8,6 +8,7 @@
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
+
 <main>
     <section class="page-heading">
         <p class="eyebrow">Admin</p>
@@ -16,7 +17,8 @@
 
     <div th:replace="~{fragments/messages :: messages}"></div>
 
-    <section class="responsive-table" th:if="${reviews != null and !#lists.isEmpty(reviews)}">
+    <section class="responsive-table"
+             th:if="${reviews != null and !#lists.isEmpty(reviews)}">
         <table>
             <thead>
             <tr>
@@ -28,20 +30,59 @@
                 <th>Action</th>
             </tr>
             </thead>
+
             <tbody>
             <tr th:each="review : ${reviews}">
                 <td data-label="Product">
-                    <a th:href="@{/products/{id}(id=${review.product.id})}" th:text="${review.product.name}">Part tray</a>
+                    <a th:href="@{/products/{id}(id=${review.productId})}"
+                       th:text="${review.productName}">
+                        Part tray
+                    </a>
                 </td>
-                <td data-label="Author" th:text="${review.author.username}">customer</td>
-                <td data-label="Rating"><span class="rating" th:text="|${review.rating}/5|">5/5</span></td>
-                <td data-label="Comment" th:text="${review.comment}">Helpful product.</td>
-                <td data-label="Date" th:text="${#temporals.format(review.createdOn, 'dd MMM yyyy')}">21 Jun 2026</td>
+
+                <td data-label="Author"
+                    th:text="${review.authorUsername}">
+                    customer
+                </td>
+
+                <td data-label="Rating">
+                    <span class="rating rating-stars">
+                        <span class="sr-only"
+                              th:text="|${review.rating} out of 5 stars|">
+                            5 out of 5 stars
+                        </span>
+                        <span class="rating-star-row" aria-hidden="true">
+                            <span th:each="star : ${#numbers.sequence(1, 5)}"
+                                  th:class="${star <= review.rating ? 'rating-star rating-star-filled' : 'rating-star rating-star-empty'}"
+                                  th:text="${star <= review.rating ? '★' : '☆'}">
+                                ★
+                            </span>
+                        </span>
+                    </span>
+                </td>
+
+                <td data-label="Comment"
+                    th:text="${review.comment}">
+                    Helpful product.
+                </td>
+
+                <td data-label="Date">
+                    <time th:datetime="${#temporals.format(review.createdOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(review.createdOn, 'dd MMM yyyy')}">
+                        21 Jun 2026
+                    </time>
+                </td>
+
                 <td data-label="Action">
-                    <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}"
+                    <form th:action="@{/admin/reviews/{id}(id=${review.id})}"
                           method="post"
-                          data-confirm="Delete this review?">
-                        <button class="btn btn-danger btn-small" type="submit">Delete</button>
+                          data-confirm="Delete this review permanently?">
+                        <input type="hidden" name="_method" value="delete">
+
+                        <button class="btn btn-danger btn-small"
+                                type="submit">
+                            Delete
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -49,9 +90,18 @@
         </table>
     </section>
 
-    <section class="empty-state" th:if="${reviews == null or #lists.isEmpty(reviews)}">
-        <h2>No reviews submitted</h2>
-        <p>Customer reviews will appear here for moderation.</p>
+    <section class="empty-state"
+             th:if="${reviews == null or #lists.isEmpty(reviews)}">
+        <p class="eyebrow">Review moderation</p>
+        <h2>No reviews submitted yet.</h2>
+        <p>
+            Customer reviews will appear here when they are submitted.
+        </p>
+
+        <a class="btn btn-primary"
+           th:href="@{/admin/products}">
+            Manage products
+        </a>
     </section>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>

@@ -1,6 +1,7 @@
 package com.aleksandar.threedforgemarket.repository.order;
 
 import com.aleksandar.threedforgemarket.model.entity.CustomerOrder;
+import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -60,4 +61,10 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, UU
     List<CustomerOrder> findAllForAdminOrderedByStatus();
 
     boolean existsByProduct_Id(UUID productId);
+
+    boolean existsByCustomer_IdAndProduct_IdAndStatus(
+            UUID customerId,
+            UUID productId,
+            OrderStatus status
+    );
 }

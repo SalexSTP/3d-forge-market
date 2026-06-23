@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action could not be completed | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="error-page">
+    <section class="empty-state error-state" aria-labelledby="error-title">
+        <p class="eyebrow">409 &middot; Action conflict</p>
+        <h1 id="error-title">This action could not be completed.</h1>
+        <p>
+            The item may have changed, become unavailable, or no longer allow that action.
+            Return home or continue browsing the product catalog.
+        </p>
+        <div class="action-row">
+            <a class="btn btn-primary" th:href="@{/}">Return home</a>
+            <a class="btn btn-ghost" th:href="@{/products}">Browse products</a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
