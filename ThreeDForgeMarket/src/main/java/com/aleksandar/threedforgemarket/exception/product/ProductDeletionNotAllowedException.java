@@ -1,4 +1,4 @@
-package com.aleksandar.threedforgemarket.exception.order;
+package com.aleksandar.threedforgemarket.exception.product;
 
 public class ProductDeletionNotAllowedException extends RuntimeException {
     public ProductDeletionNotAllowedException() {

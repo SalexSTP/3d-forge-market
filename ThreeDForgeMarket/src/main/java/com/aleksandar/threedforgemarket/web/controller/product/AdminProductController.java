@@ -1,6 +1,6 @@
 package com.aleksandar.threedforgemarket.web.controller.product;
 
-import com.aleksandar.threedforgemarket.exception.order.ProductDeletionNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.product.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductFormDto;
