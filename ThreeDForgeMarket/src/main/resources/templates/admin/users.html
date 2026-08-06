@@ -56,25 +56,43 @@
                 </select>
             </div>
 
-            <div class="field">
-                <label for="createdFrom">Created from</label>
-                <input id="createdFrom" type="date" th:field="*{createdFrom}">
-            </div>
+            <details class="date-filter-popover"
+                     th:classappend="${searchRequest.createdFrom != null or searchRequest.createdTo != null} ? 'has-value'">
+                <summary>
+                    <span>Created stamp</span>
+                </summary>
 
-            <div class="field">
-                <label for="createdTo">Created to</label>
-                <input id="createdTo" type="date" th:field="*{createdTo}">
-            </div>
+                <div class="date-filter-panel">
+                    <div class="field">
+                        <label for="createdFrom">From</label>
+                        <input id="createdFrom" type="date" th:field="*{createdFrom}">
+                    </div>
 
-            <div class="field">
-                <label for="lastLoginFrom">Last login from</label>
-                <input id="lastLoginFrom" type="date" th:field="*{lastLoginFrom}">
-            </div>
+                    <div class="field">
+                        <label for="createdTo">To</label>
+                        <input id="createdTo" type="date" th:field="*{createdTo}">
+                    </div>
+                </div>
+            </details>
 
-            <div class="field">
-                <label for="lastLoginTo">Last login to</label>
-                <input id="lastLoginTo" type="date" th:field="*{lastLoginTo}">
-            </div>
+            <details class="date-filter-popover"
+                     th:classappend="${searchRequest.lastLoginFrom != null or searchRequest.lastLoginTo != null} ? 'has-value'">
+                <summary>
+                    <span>Last login stamp</span>
+                </summary>
+
+                <div class="date-filter-panel">
+                    <div class="field">
+                        <label for="lastLoginFrom">From</label>
+                        <input id="lastLoginFrom" type="date" th:field="*{lastLoginFrom}">
+                    </div>
+
+                    <div class="field">
+                        <label for="lastLoginTo">To</label>
+                        <input id="lastLoginTo" type="date" th:field="*{lastLoginTo}">
+                    </div>
+                </div>
+            </details>
 
             <button class="btn btn-primary" type="submit">Apply</button>
             <a class="btn btn-ghost" th:href="@{/admin/users}">Reset</a>
