@@ -1,9 +1,6 @@
 package com.aleksandar.threedforgemarket.web.common;
 
-import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
-import com.aleksandar.threedforgemarket.exception.auth.PasswordsDoNotMatchException;
-import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
-import com.aleksandar.threedforgemarket.exception.auth.UsernameAlreadyExistsException;
+import com.aleksandar.threedforgemarket.exception.auth.*;
 import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
@@ -55,7 +52,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             OrderCreationNotAllowedException.class,
-            ReviewCreationNotAllowedException.class
+            ReviewCreationNotAllowedException.class,
+            UserOperationNotAllowedException.class
     })
     public ModelAndView handleForbiddenDomainAction() {
         return errorView("error/403", HttpStatus.FORBIDDEN);

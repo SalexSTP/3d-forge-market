@@ -753,6 +753,10 @@ dd {
     grid-template-columns: minmax(180px, 1.3fr) repeat(3, minmax(140px, 1fr)) repeat(2, minmax(110px, 0.75fr)) auto auto;
 }
 
+.admin-user-filter-bar {
+    grid-template-columns: minmax(180px, 1.3fr) repeat(2, minmax(130px, 0.8fr)) repeat(4, minmax(120px, 0.75fr)) auto auto;
+}
+
 .filter-bar.is-collapsed {
     display: none;
 }
@@ -1160,6 +1164,29 @@ tr:last-child td {
     white-space: normal;
 }
 
+.admin-user-actions {
+    display: grid;
+    gap: var(--space-xs);
+    min-width: 260px;
+}
+
+.admin-user-actions form {
+    margin: 0;
+}
+
+.role-update-form {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) auto;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.user-self-badge {
+    margin-left: var(--space-xs);
+    background: #e8f7f5;
+    color: var(--color-primary-dark);
+}
+
 .muted-text,
 .muted-action {
     color: var(--color-muted);
@@ -1294,6 +1321,7 @@ tr:last-child td {
 
     .filter-bar,
     .admin-filter-bar,
+    .admin-user-filter-bar,
     .form-grid {
         grid-template-columns: 1fr;
     }
@@ -1374,6 +1402,10 @@ tr:last-child td {
     }
 
     .status-update-form {
+        grid-template-columns: 1fr;
+    }
+
+    .role-update-form {
         grid-template-columns: 1fr;
     }
 

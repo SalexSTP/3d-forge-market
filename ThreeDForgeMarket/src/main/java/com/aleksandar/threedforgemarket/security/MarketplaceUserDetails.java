@@ -16,6 +16,7 @@ public class MarketplaceUserDetails implements UserDetails {
     private final String email;
     private final String password;
     private final UserRole role;
+    private final boolean active;
     private final List<GrantedAuthority> authorities;
 
     public MarketplaceUserDetails(User user) {
@@ -24,6 +25,7 @@ public class MarketplaceUserDetails implements UserDetails {
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.role = user.getRole();
+        this.active = user.isActive();
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
@@ -52,5 +54,10 @@ public class MarketplaceUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
     }
 }
