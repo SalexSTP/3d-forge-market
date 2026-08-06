@@ -91,6 +91,7 @@ public class AuthController {
     @GetMapping("/auth/login")
     public ModelAndView getLoginPage(
             Authentication authentication,
+            @RequestParam(required = false) String disabled,
             @RequestParam(required = false) String error,
             @RequestParam(required = false) String logout
     ) {
@@ -101,7 +102,13 @@ public class AuthController {
         ModelAndView modelAndView = new ModelAndView("auth/login");
         modelAndView.addObject("loginForm", new LoginRequest());
 
-        if (error != null) {
+        if (disabled != null) {
+            modelAndView.addObject(
+                    "errorMessage",
+                    "Your account has been deactivated and cannot sign in."
+            );
+        }
+        else if (error != null) {
             modelAndView.addObject(
                     "errorMessage",
                     "Invalid username, email, or password."

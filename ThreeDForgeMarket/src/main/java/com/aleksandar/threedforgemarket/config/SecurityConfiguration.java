@@ -1,5 +1,6 @@
 package com.aleksandar.threedforgemarket.config;
 
+import com.aleksandar.threedforgemarket.security.MarketplaceAuthenticationFailureHandler;
 import com.aleksandar.threedforgemarket.security.MarketplaceAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +9,14 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfiguration {
+    private final MarketplaceAuthenticationFailureHandler authenticationFailureHandler;
     private final MarketplaceAuthenticationSuccessHandler authenticationSuccessHandler;
 
     public SecurityConfiguration(
+            MarketplaceAuthenticationFailureHandler authenticationFailureHandler,
             MarketplaceAuthenticationSuccessHandler authenticationSuccessHandler
     ) {
+        this.authenticationFailureHandler = authenticationFailureHandler;
         this.authenticationSuccessHandler = authenticationSuccessHandler;
     }
 
@@ -43,7 +47,7 @@ public class SecurityConfiguration {
                         .loginProcessingUrl("/auth/login")
                         .usernameParameter("usernameOrEmail")
                         .passwordParameter("password")
-                        .failureUrl("/auth/login?error")
+                        .failureHandler(authenticationFailureHandler)
                         .successHandler(authenticationSuccessHandler)
                 )
                 .logout(logout -> logout
