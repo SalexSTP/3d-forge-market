@@ -1,11 +1,9 @@
 package com.aleksandar.threedforgemarket.service.user;
 
 import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
-import com.aleksandar.threedforgemarket.exception.auth.InvalidLoginCredentialsException;
 import com.aleksandar.threedforgemarket.exception.auth.PasswordsDoNotMatchException;
 import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
 import com.aleksandar.threedforgemarket.exception.auth.UsernameAlreadyExistsException;
-import com.aleksandar.threedforgemarket.model.dto.auth.LoginRequest;
 import com.aleksandar.threedforgemarket.model.dto.auth.RegisterRequest;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
@@ -53,22 +51,15 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User login(LoginRequest loginRequest) {
-        User user = userRepository.findByUsername(loginRequest.getUsernameOrEmail())
-                .or(() -> userRepository.findByEmail(loginRequest.getUsernameOrEmail()))
-                .orElseThrow(InvalidLoginCredentialsException::new);
-
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new InvalidLoginCredentialsException();
-        }
-
-        user.setLastLoginOn(LocalDateTime.now());
-
-        return userRepository.save(user);
-    }
-
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
+    }
+
+    @Transactional
+    public void updateLastLogin(UUID userId) {
+        User user = findUserById(userId);
+
+        user.setLastLoginOn(LocalDateTime.now());
     }
 
     public ProfileDto getCurrentUserProfile(UUID userId) {

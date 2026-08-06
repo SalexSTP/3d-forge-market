@@ -1,12 +1,12 @@
 package com.aleksandar.threedforgemarket.web.controller.product;
 
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
-import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
-import com.aleksandar.threedforgemarket.service.user.UserService;
+import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
+import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.product.ProductService;
 import com.aleksandar.threedforgemarket.service.review.ReviewService;
-import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,16 +19,13 @@ public class ProductController {
 
     private final ProductService productService;
     private final ReviewService reviewService;
-    private final UserService userService;
 
     public ProductController(
             ProductService productService,
-            ReviewService reviewService,
-            UserService userService
+            ReviewService reviewService
     ) {
         this.productService = productService;
         this.reviewService = reviewService;
-        this.userService = userService;
     }
 
     @GetMapping
@@ -53,14 +50,15 @@ public class ProductController {
     @GetMapping("/{id}")
     public ModelAndView getProductDetailsPage(
             @PathVariable UUID id,
-            @SessionAttribute(
-                    name = AuthController.USER_ID_SESSION_ATTRIBUTE,
-                    required = false
-            ) UUID currentUserId
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser
     ) {
-        ProductDetailsDto product = isAdmin(currentUserId)
+        ProductDetailsDto product = isAdmin(currentUser)
                 ? productService.getProductDetailsForAdmin(id)
                 : productService.getAvailableProductDetails(id);
+        UUID customerId = currentUser != null
+                && currentUser.getRole() == UserRole.CUSTOMER
+                ? currentUser.getId()
+                : null;
 
         ModelAndView modelAndView = new ModelAndView("product/details");
 
@@ -72,7 +70,7 @@ public class ProductController {
         modelAndView.addObject(
                 "canReview",
                 reviewService.canCustomerReview(
-                        currentUserId,
+                        customerId,
                         product.getId()
                 )
         );
@@ -80,13 +78,7 @@ public class ProductController {
         return modelAndView;
     }
 
-    private boolean isAdmin(UUID currentUserId) {
-        if (currentUserId == null) {
-            return false;
-        }
-
-        return userService.findById(currentUserId)
-                .map(user -> user.getRole() == UserRole.ADMIN)
-                .orElse(false);
+    private boolean isAdmin(MarketplaceUserDetails currentUser) {
+        return currentUser != null && currentUser.getRole() == UserRole.ADMIN;
     }
 }

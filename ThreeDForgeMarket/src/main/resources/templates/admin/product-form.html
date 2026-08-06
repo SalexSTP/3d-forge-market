@@ -21,6 +21,7 @@
           th:object="${productForm}"
           method="post">
 
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <input type="hidden" th:field="*{id}">
 
         <input th:if="${productForm.id != null}"

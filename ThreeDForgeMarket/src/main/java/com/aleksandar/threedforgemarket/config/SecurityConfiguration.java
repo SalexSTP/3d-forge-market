@@ -1,0 +1,57 @@
+package com.aleksandar.threedforgemarket.config;
+
+import com.aleksandar.threedforgemarket.security.MarketplaceAuthenticationSuccessHandler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfiguration {
+    private final MarketplaceAuthenticationSuccessHandler authenticationSuccessHandler;
+
+    public SecurityConfiguration(
+            MarketplaceAuthenticationSuccessHandler authenticationSuccessHandler
+    ) {
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+        return http
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(
+                                "/",
+                                "/auth/**",
+                                "/products",
+                                "/products/*",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico",
+                                "/error"
+                        ).permitAll()
+                        .requestMatchers("/profile", "/profile/**").authenticated()
+                        .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/orders", "/orders/**").hasRole("CUSTOMER")
+                        .requestMatchers("/reviews", "/reviews/**").hasRole("CUSTOMER")
+                        .anyRequest().authenticated()
+                )
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
+                        .usernameParameter("usernameOrEmail")
+                        .passwordParameter("password")
+                        .failureUrl("/auth/login?error")
+                        .successHandler(authenticationSuccessHandler)
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessUrl("/auth/login?logout")
+                )
+                .build();
+    }
+}

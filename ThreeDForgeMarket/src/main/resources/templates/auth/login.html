@@ -17,6 +17,8 @@
         </div>
 
         <form class="form-card" th:action="@{/auth/login}" th:object="${loginForm}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
             <div th:replace="~{fragments/messages :: messages}"></div>
 
             <div class="field">

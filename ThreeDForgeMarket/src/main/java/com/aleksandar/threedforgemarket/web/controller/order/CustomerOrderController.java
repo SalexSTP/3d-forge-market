@@ -8,11 +8,11 @@ import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableExcept
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
+import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.order.CustomerOrderService;
 import com.aleksandar.threedforgemarket.service.product.ProductService;
-import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +63,7 @@ public class CustomerOrderController {
     public ModelAndView createOrder(
             @Valid @ModelAttribute("orderForm") CreateOrderRequest orderForm,
             BindingResult bindingResult,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasFieldErrors("productId")) {
@@ -91,7 +91,7 @@ public class CustomerOrderController {
 
         try {
             customerOrderService.createOrder(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     orderForm
             );
 
@@ -121,13 +121,15 @@ public class CustomerOrderController {
     }
 
     @GetMapping("/my")
-    public ModelAndView getMyOrdersPage(HttpSession session) {
+    public ModelAndView getMyOrdersPage(
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser
+    ) {
         ModelAndView modelAndView = new ModelAndView("order/my-orders");
 
         modelAndView.addObject(
                 "orders",
                 customerOrderService.getOrdersForCustomer(
-                        getCurrentUserId(session)
+                        currentUser.getId()
                 )
         );
 
@@ -137,12 +139,12 @@ public class CustomerOrderController {
     @PutMapping("/{id}/cancel")
     public ModelAndView cancelOrder(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             customerOrderService.cancelOrder(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     id
             );
 
@@ -166,12 +168,12 @@ public class CustomerOrderController {
     @DeleteMapping("/{id}")
     public ModelAndView deleteOrderFromHistory(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             customerOrderService.deleteOrderFromHistory(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     id
             );
 
@@ -213,17 +215,5 @@ public class CustomerOrderController {
         modelAndView.addObject("calculatedTotal", calculatedTotal);
 
         return modelAndView;
-    }
-
-    private UUID getCurrentUserId(HttpSession session) {
-        Object sessionUserId = session.getAttribute(
-                AuthController.USER_ID_SESSION_ATTRIBUTE
-        );
-
-        if (sessionUserId instanceof UUID userId) {
-            return userId;
-        }
-
-        throw new IllegalStateException("Authenticated user session is required.");
     }
 }
