@@ -17,13 +17,18 @@ public record CustomPrintRequestListItemClientDto(
         BigDecimal depthCm,
         Integer quantity,
         String referenceFileUrl,
+        String deliveryAddress,
         CustomPrintRequestStatus status,
         BigDecimal quotedPrice,
         Integer estimatedPrintTimeMinutes,
         String adminMessage,
+        String responseFileUrl,
+        String customerMessage,
         LocalDateTime createdOn,
         LocalDateTime updatedOn,
         LocalDateTime quotedOn,
-        LocalDateTime cancelledOn
+        LocalDateTime cancelledOn,
+        LocalDateTime customerRespondedOn,
+        LocalDateTime acceptedOn
 ) {
 }

@@ -9,10 +9,14 @@ import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintReque
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestListItemClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
+import com.aleksandar.threedforgemarket.integration.customprint.RejectCustomPrintRequestClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.RequestCustomPrintChangesClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintOfferClientDto;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintChangeRequestFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRequestFormDto;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
@@ -22,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,9 +47,20 @@ public class CustomPrintRequestService {
         this.userRepository = userRepository;
     }
 
-    public List<CustomPrintRequestListItemClientDto> getCustomerRequests(UUID customerId) {
+    public List<CustomPrintRequestListItemClientDto> getCustomerRequests(
+            UUID customerId,
+            CustomPrintSearchRequest searchRequest
+    ) {
+        validateDateRange(searchRequest);
+
         try {
-            return customPrintRequestClient.getCustomerRequests(customerId);
+            return customPrintRequestClient.getCustomerRequests(
+                    customerId,
+                    keyword(searchRequest),
+                    status(searchRequest),
+                    createdFrom(searchRequest),
+                    createdTo(searchRequest)
+            );
         } catch (FeignException exception) {
             throw translateFeignException(exception);
         }
@@ -85,7 +102,8 @@ public class CustomPrintRequestService {
                 formDto.getHeightCm(),
                 formDto.getDepthCm(),
                 formDto.getQuantity(),
-                normalizeOptionalText(formDto.getReferenceFileUrl())
+                normalizeOptionalText(formDto.getReferenceFileUrl()),
+                formDto.getDeliveryAddress().strip()
         );
 
         try {
@@ -105,9 +123,53 @@ public class CustomPrintRequestService {
         }
     }
 
-    public List<CustomPrintRequestListItemClientDto> getAllRequestsForAdmin() {
+    public void acceptOffer(UUID customerId, UUID requestId) {
         try {
-            return customPrintRequestClient.getAllRequests();
+            customPrintRequestClient.acceptOffer(customerId, requestId);
+            LOGGER.info("Accepted custom print offer for request {} by customer {}", requestId, customerId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    public void requestChanges(
+            UUID customerId,
+            UUID requestId,
+            CustomPrintChangeRequestFormDto formDto
+    ) {
+        RequestCustomPrintChangesClientDto requestDto = new RequestCustomPrintChangesClientDto(
+                formDto.getCustomerMessage()
+        );
+
+        try {
+            customPrintRequestClient.requestChanges(customerId, requestId, requestDto);
+            LOGGER.info("Requested changes for custom print request {} by customer {}", requestId, customerId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    public void hideCustomerRequest(UUID customerId, UUID requestId) {
+        try {
+            customPrintRequestClient.hideCustomerRequest(customerId, requestId);
+            LOGGER.info("Hid custom print request {} for customer {}", requestId, customerId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    public List<CustomPrintRequestListItemClientDto> getAllRequestsForAdmin(
+            CustomPrintSearchRequest searchRequest
+    ) {
+        validateDateRange(searchRequest);
+
+        try {
+            return customPrintRequestClient.getAllRequests(
+                    keyword(searchRequest),
+                    status(searchRequest),
+                    createdFrom(searchRequest),
+                    createdTo(searchRequest)
+            );
         } catch (FeignException exception) {
             throw translateFeignException(exception);
         }
@@ -129,11 +191,11 @@ public class CustomPrintRequestService {
                 formDto.getQuotedPrice(),
                 formDto.getEstimatedPrintTimeMinutes(),
                 normalizeOptionalText(formDto.getAdminMessage()),
-                CustomPrintRequestStatus.OFFER_SENT
+                normalizeOptionalText(formDto.getResponseFileUrl())
         );
 
         try {
-            customPrintRequestClient.updateQuote(requestId, offerDto);
+            customPrintRequestClient.sendOffer(requestId, offerDto);
             LOGGER.info("Sent custom print offer for request {}", requestId);
         } catch (FeignException exception) {
             throw translateFeignException(exception);
@@ -144,19 +206,67 @@ public class CustomPrintRequestService {
             UUID requestId,
             CustomPrintRejectFormDto formDto
     ) {
-        UpdateCustomPrintOfferClientDto rejectDto = new UpdateCustomPrintOfferClientDto(
-                null,
-                null,
-                formDto.getAdminMessage(),
-                CustomPrintRequestStatus.REJECTED
+        RejectCustomPrintRequestClientDto rejectDto = new RejectCustomPrintRequestClientDto(
+                formDto.getAdminMessage()
         );
 
         try {
-            customPrintRequestClient.updateQuote(requestId, rejectDto);
+            customPrintRequestClient.rejectRequest(requestId, rejectDto);
             LOGGER.info("Rejected custom print request {}", requestId);
         } catch (FeignException exception) {
             throw translateFeignException(exception);
         }
+    }
+
+    public void archiveRequest(UUID requestId) {
+        try {
+            customPrintRequestClient.archiveRequest(requestId);
+            LOGGER.info("Archived custom print request {}", requestId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    private void validateDateRange(CustomPrintSearchRequest searchRequest) {
+        if (searchRequest == null
+                || searchRequest.getCreatedFrom() == null
+                || searchRequest.getCreatedTo() == null) {
+            return;
+        }
+
+        if (searchRequest.getCreatedFrom().isAfter(searchRequest.getCreatedTo())) {
+            throw new CustomPrintRequestOperationFailedException(
+                    "Created from date must be before created to date."
+            );
+        }
+    }
+
+    private String keyword(CustomPrintSearchRequest searchRequest) {
+        return searchRequest == null ? null : normalizeOptionalText(searchRequest.getKeyword());
+    }
+
+    private CustomPrintRequestStatus status(CustomPrintSearchRequest searchRequest) {
+        return searchRequest == null ? null : searchRequest.getStatus();
+    }
+
+    private String createdFrom(CustomPrintSearchRequest searchRequest) {
+        if (searchRequest == null || searchRequest.getCreatedFrom() == null) {
+            return null;
+        }
+
+        return formatDateTime(searchRequest.getCreatedFrom().atStartOfDay());
+    }
+
+    private String createdTo(CustomPrintSearchRequest searchRequest) {
+        if (searchRequest == null || searchRequest.getCreatedTo() == null) {
+            return null;
+        }
+
+        return formatDateTime(searchRequest.getCreatedTo().atTime(23, 59, 59));
+    }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     private RuntimeException translateFeignException(FeignException exception) {

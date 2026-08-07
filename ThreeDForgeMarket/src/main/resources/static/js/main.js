@@ -54,6 +54,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    function openModal(modal) {
+        if (!modal) {
+            return;
+        }
+
+        if (typeof modal.showModal === "function") {
+            modal.showModal();
+            return;
+        }
+
+        modal.setAttribute("open", "");
+    }
+
+    function closeModal(modal) {
+        if (!modal) {
+            return;
+        }
+
+        if (typeof modal.close === "function") {
+            modal.close();
+            return;
+        }
+
+        modal.removeAttribute("open");
+    }
+
+    document.querySelectorAll("[data-modal-open]").forEach(function (trigger) {
+        trigger.addEventListener("click", function () {
+            openModal(document.getElementById(trigger.getAttribute("data-modal-open")));
+        });
+    });
+
+    document.querySelectorAll("[data-modal-close]").forEach(function (trigger) {
+        trigger.addEventListener("click", function () {
+            closeModal(trigger.closest("dialog"));
+        });
+    });
+
+    document.querySelectorAll("dialog.modal-dialog").forEach(function (modal) {
+        if (modal.getAttribute("data-auto-open") === "true") {
+            openModal(modal);
+        }
+
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeModal(modal);
+            }
+        });
+    });
+
     var orderForm = document.querySelector("form[data-unit-price]");
     if (!orderForm) {
         return;

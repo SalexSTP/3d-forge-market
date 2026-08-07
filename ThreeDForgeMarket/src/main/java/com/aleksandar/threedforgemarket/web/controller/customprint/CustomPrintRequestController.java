@@ -3,7 +3,11 @@ package com.aleksandar.threedforgemarket.web.controller.customprint;
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestNotFoundException;
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintChangeRequestFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRequestFormDto;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
 import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.customprint.CustomPrintRequestService;
 import jakarta.validation.Valid;
@@ -31,18 +35,29 @@ public class CustomPrintRequestController {
         this.customPrintRequestService = customPrintRequestService;
     }
 
+    @ModelAttribute("statuses")
+    public CustomPrintRequestStatus[] statuses() {
+        return CustomPrintRequestStatus.values();
+    }
+
     @GetMapping
     public ModelAndView getCustomerRequestsPage(
+            @ModelAttribute("searchRequest") CustomPrintSearchRequest searchRequest,
             @AuthenticationPrincipal MarketplaceUserDetails currentUser
     ) {
         ModelAndView modelAndView = new ModelAndView("custom-print/list");
+        modelAndView.addObject("searchRequest", searchRequest);
 
         try {
             modelAndView.addObject(
                     "requests",
-                    customPrintRequestService.getCustomerRequests(currentUser.getId())
+                    customPrintRequestService.getCustomerRequests(currentUser.getId(), searchRequest)
             );
         } catch (CustomPrintServiceUnavailableException exception) {
+            modelAndView.addObject("requests", List.of());
+            modelAndView.addObject("errorMessage", exception.getMessage());
+            modelAndView.addObject("serviceUnavailable", true);
+        } catch (CustomPrintRequestOperationFailedException exception) {
             modelAndView.addObject("requests", List.of());
             modelAndView.addObject("errorMessage", exception.getMessage());
         }
@@ -98,16 +113,11 @@ public class CustomPrintRequestController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            ModelAndView modelAndView = new ModelAndView("custom-print/details");
-            modelAndView.addObject(
-                    "request",
-                    customPrintRequestService.getCustomerRequestDetails(
-                            currentUser.getId(),
-                            id
-                    )
+            return customerDetailsModelAndView(
+                    customPrintRequestService.getCustomerRequestDetails(currentUser.getId(), id),
+                    new CustomPrintChangeRequestFormDto(),
+                    null
             );
-
-            return modelAndView;
 
         } catch (CustomPrintRequestNotFoundException exception) {
             redirectAttributes.addFlashAttribute(
@@ -158,5 +168,93 @@ public class CustomPrintRequestController {
         }
 
         return new ModelAndView("redirect:/custom-prints");
+    }
+
+    @PutMapping("/{id}/accept")
+    public ModelAndView acceptOffer(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            customPrintRequestService.acceptOffer(currentUser.getId(), id);
+            redirectAttributes.addFlashAttribute("successMessage", "The custom print offer was accepted.");
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This offer can no longer be accepted.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/custom-prints/" + id);
+    }
+
+    @PutMapping("/{id}/request-changes")
+    public ModelAndView requestChanges(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("changeRequestForm") CustomPrintChangeRequestFormDto changeRequestForm,
+            BindingResult bindingResult,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            try {
+                return customerDetailsModelAndView(
+                        customPrintRequestService.getCustomerRequestDetails(currentUser.getId(), id),
+                        changeRequestForm,
+                        "change-request-modal"
+                );
+            } catch (CustomPrintServiceUnavailableException exception) {
+                redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+                return new ModelAndView("redirect:/custom-prints");
+            }
+        }
+
+        try {
+            customPrintRequestService.requestChanges(currentUser.getId(), id, changeRequestForm);
+            redirectAttributes.addFlashAttribute("successMessage", "Your change request was sent.");
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Changes can no longer be requested for this offer.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/custom-prints/" + id);
+    }
+
+    @PutMapping("/{id}/hide")
+    public ModelAndView hideRequest(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            customPrintRequestService.hideCustomerRequest(currentUser.getId(), id);
+            redirectAttributes.addFlashAttribute("successMessage", "The custom print request was removed from your history.");
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled or rejected requests can be removed.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/custom-prints");
+    }
+
+    private ModelAndView customerDetailsModelAndView(
+            CustomPrintRequestDetailsClientDto request,
+            CustomPrintChangeRequestFormDto changeRequestForm,
+            String openModal
+    ) {
+        ModelAndView modelAndView = new ModelAndView("custom-print/details");
+        modelAndView.addObject("request", request);
+        modelAndView.addObject("changeRequestForm", changeRequestForm);
+        modelAndView.addObject("openModal", openModal);
+
+        return modelAndView;
     }
 }

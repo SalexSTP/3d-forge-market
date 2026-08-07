@@ -6,6 +6,6 @@ public record UpdateCustomPrintOfferClientDto(
         BigDecimal quotedPrice,
         Integer estimatedPrintTimeMinutes,
         String adminMessage,
-        CustomPrintRequestStatus status
+        String responseFileUrl
 ) {
 }

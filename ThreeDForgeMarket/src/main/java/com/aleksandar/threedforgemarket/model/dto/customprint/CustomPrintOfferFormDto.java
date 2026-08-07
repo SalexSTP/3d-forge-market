@@ -22,4 +22,7 @@ public class CustomPrintOfferFormDto {
 
     @Size(max = 1000, message = "Admin message must not exceed 1000 characters.")
     private String adminMessage;
+
+    @Size(max = 500, message = "Response file URL must not exceed 500 characters.")
+    private String responseFileUrl;
 }

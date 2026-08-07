@@ -632,6 +632,11 @@ main {
     color: var(--color-primary-dark);
 }
 
+.status-changes_requested {
+    background: #f3edff;
+    color: var(--status-printing);
+}
+
 .status-accepted {
     background: var(--color-success-bg);
     color: var(--status-delivered);
@@ -1022,6 +1027,71 @@ textarea:focus {
 .admin-custom-print-actions {
     display: grid;
     gap: var(--space-md);
+}
+
+.custom-print-centered {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+.custom-print-centered > .form-card {
+    width: min(100%, 820px);
+}
+
+.admin-custom-print-action-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: var(--space-md);
+    width: min(100%, 520px);
+}
+
+.admin-custom-print-action-row .btn,
+.custom-print-archive-form,
+.custom-print-archive-form .btn {
+    width: 100%;
+}
+
+.custom-print-action-stack {
+    display: grid;
+    gap: var(--space-sm);
+}
+
+.custom-print-action-stack form {
+    margin: 0;
+}
+
+.custom-print-filter-bar {
+    width: 100%;
+    grid-template-columns: minmax(190px, 1.3fr) minmax(150px, 0.8fr) repeat(2, minmax(140px, 0.75fr)) auto auto;
+}
+
+.table-action-btn {
+    min-width: 82px;
+}
+
+.modal-dialog {
+    width: min(560px, calc(100% - 32px));
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text);
+}
+
+.modal-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.62);
+}
+
+.modal-card {
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
 }
 
 .custom-print-closed-state {
@@ -1437,6 +1507,7 @@ tr:last-child td {
     .filter-bar,
     .admin-filter-bar,
     .admin-user-filter-bar,
+    .custom-print-filter-bar,
     .form-grid {
         grid-template-columns: 1fr;
     }
@@ -1531,8 +1602,13 @@ tr:last-child td {
     }
 
     .status-update-form .btn,
-    .btn-history-delete {
+    .btn-history-delete,
+    .admin-custom-print-action-row {
         width: 100%;
+    }
+
+    .admin-custom-print-action-row {
+        grid-template-columns: 1fr;
     }
 }
 

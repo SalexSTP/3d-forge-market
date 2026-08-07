@@ -15,13 +15,53 @@
             <p class="eyebrow">Custom prints</p>
             <h1>My custom print requests</h1>
         </div>
-        <a class="btn btn-primary" th:href="@{/custom-prints/new}">New request</a>
+        <a class="btn btn-primary"
+           th:if="${serviceUnavailable != true}"
+           th:href="@{/custom-prints/new}">+ New request</a>
     </section>
 
-    <div th:replace="~{fragments/messages :: messages}"></div>
+    <div th:if="${serviceUnavailable != true}" th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="catalog-tools admin-filter-tools" th:if="${serviceUnavailable != true}">
+        <button class="btn btn-filter" type="button" aria-expanded="false" aria-controls="customer-custom-print-filter-panel">
+            Search and filter
+        </button>
+
+        <form id="customer-custom-print-filter-panel"
+              class="filter-bar custom-print-filter-bar is-collapsed"
+              th:action="@{/custom-prints}"
+              th:object="${searchRequest}"
+              method="get">
+            <div class="field">
+                <label for="keyword">Search</label>
+                <input id="keyword" type="search" th:field="*{keyword}" placeholder="Title, material, message">
+            </div>
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" th:field="*{status}">
+                    <option value="">All statuses</option>
+                    <option th:each="statusOption : ${statuses}"
+                            th:value="${statusOption}"
+                            th:text="${statusOption.displayName}">
+                        Pending review
+                    </option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="createdFrom">Created from</label>
+                <input id="createdFrom" type="date" th:field="*{createdFrom}">
+            </div>
+            <div class="field">
+                <label for="createdTo">Created to</label>
+                <input id="createdTo" type="date" th:field="*{createdTo}">
+            </div>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-ghost" th:href="@{/custom-prints}">Reset</a>
+        </form>
+    </section>
 
     <section class="responsive-table"
-             th:if="${requests != null and !#lists.isEmpty(requests)}">
+             th:if="${serviceUnavailable != true and requests != null and !#lists.isEmpty(requests)}">
         <table>
             <thead>
             <tr>
@@ -61,7 +101,7 @@
                     <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
                 </td>
                 <td data-label="Actions">
-                    <a class="btn btn-small btn-ghost"
+                    <a class="btn btn-small btn-ghost table-action-btn"
                        th:href="@{/custom-prints/{id}(id=${request.id})}">
                         Details
                     </a>
@@ -72,11 +112,40 @@
     </section>
 
     <section class="empty-state"
-             th:if="${requests == null or #lists.isEmpty(requests)}">
+             th:if="${serviceUnavailable != true and (requests == null or #lists.isEmpty(requests))}">
         <p class="eyebrow">Request queue</p>
-        <h2>No custom print requests yet.</h2>
-        <p>Submit dimensions, material, color, and reference details for a custom quote.</p>
-        <a class="btn btn-primary" th:href="@{/custom-prints/new}">Create request</a>
+        <h2 th:text="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null
+            ? 'No custom print requests match these filters.'
+            : 'No custom print requests yet.'}">
+            No custom print requests yet.
+        </h2>
+        <p th:text="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null
+            ? 'Try adjusting or clearing the active filters.'
+            : 'Submit dimensions, material, color, and reference details for a custom quote.'}">
+            Submit dimensions, material, color, and reference details for a custom quote.
+        </p>
+        <a class="btn btn-primary"
+           th:if="${searchRequest.keyword == null
+            and searchRequest.status == null
+            and searchRequest.createdFrom == null
+            and searchRequest.createdTo == null}"
+           th:href="@{/custom-prints/new}">
+            Create request
+        </a>
+        <a class="btn btn-ghost"
+           th:if="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null}"
+           th:href="@{/custom-prints}">
+            Clear filters
+        </a>
     </section>
 </main>
 

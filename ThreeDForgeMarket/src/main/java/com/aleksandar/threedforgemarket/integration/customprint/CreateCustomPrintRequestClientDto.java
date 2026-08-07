@@ -15,6 +15,7 @@ public record CreateCustomPrintRequestClientDto(
         BigDecimal heightCm,
         BigDecimal depthCm,
         Integer quantity,
-        String referenceFileUrl
+        String referenceFileUrl,
+        String deliveryAddress
 ) {
 }

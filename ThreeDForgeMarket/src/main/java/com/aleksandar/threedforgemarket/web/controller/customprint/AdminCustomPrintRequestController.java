@@ -4,8 +4,10 @@ import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequest
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
 import com.aleksandar.threedforgemarket.service.customprint.CustomPrintRequestService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -30,16 +32,28 @@ public class AdminCustomPrintRequestController {
         this.customPrintRequestService = customPrintRequestService;
     }
 
+    @ModelAttribute("statuses")
+    public CustomPrintRequestStatus[] statuses() {
+        return CustomPrintRequestStatus.values();
+    }
+
     @GetMapping
-    public ModelAndView getAdminRequestsPage() {
+    public ModelAndView getAdminRequestsPage(
+            @ModelAttribute("searchRequest") CustomPrintSearchRequest searchRequest
+    ) {
         ModelAndView modelAndView = new ModelAndView("admin/custom-prints");
+        modelAndView.addObject("searchRequest", searchRequest);
 
         try {
             modelAndView.addObject(
                     "requests",
-                    customPrintRequestService.getAllRequestsForAdmin()
+                    customPrintRequestService.getAllRequestsForAdmin(searchRequest)
             );
         } catch (CustomPrintServiceUnavailableException exception) {
+            modelAndView.addObject("requests", List.of());
+            modelAndView.addObject("errorMessage", exception.getMessage());
+            modelAndView.addObject("serviceUnavailable", true);
+        } catch (CustomPrintRequestOperationFailedException exception) {
             modelAndView.addObject("requests", List.of());
             modelAndView.addObject("errorMessage", exception.getMessage());
         }
@@ -53,10 +67,13 @@ public class AdminCustomPrintRequestController {
             RedirectAttributes redirectAttributes
     ) {
         try {
+            CustomPrintRequestDetailsClientDto request = customPrintRequestService.getRequestDetailsForAdmin(id);
+
             return adminDetailsModelAndView(
-                    customPrintRequestService.getRequestDetailsForAdmin(id),
-                    new CustomPrintOfferFormDto(),
-                    new CustomPrintRejectFormDto()
+                    request,
+                    toOfferForm(request),
+                    new CustomPrintRejectFormDto(),
+                    null
             );
 
         } catch (CustomPrintRequestNotFoundException exception) {
@@ -83,10 +100,13 @@ public class AdminCustomPrintRequestController {
     ) {
         if (bindingResult.hasErrors()) {
             try {
+                CustomPrintRequestDetailsClientDto request = customPrintRequestService.getRequestDetailsForAdmin(id);
+
                 return adminDetailsModelAndView(
-                        customPrintRequestService.getRequestDetailsForAdmin(id),
+                        request,
                         offerForm,
-                        new CustomPrintRejectFormDto()
+                        new CustomPrintRejectFormDto(),
+                        "offer-modal"
                 );
             } catch (CustomPrintServiceUnavailableException exception) {
                 redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -130,10 +150,13 @@ public class AdminCustomPrintRequestController {
     ) {
         if (bindingResult.hasErrors()) {
             try {
+                CustomPrintRequestDetailsClientDto request = customPrintRequestService.getRequestDetailsForAdmin(id);
+
                 return adminDetailsModelAndView(
-                        customPrintRequestService.getRequestDetailsForAdmin(id),
-                        new CustomPrintOfferFormDto(),
-                        rejectForm
+                        request,
+                        toOfferForm(request),
+                        rejectForm,
+                        "reject-modal"
                 );
             } catch (CustomPrintServiceUnavailableException exception) {
                 redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -168,16 +191,48 @@ public class AdminCustomPrintRequestController {
         return new ModelAndView("redirect:/admin/custom-prints/" + id);
     }
 
+    @PutMapping("/{id}/archive")
+    public ModelAndView archiveRequest(
+            @PathVariable UUID id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            customPrintRequestService.archiveRequest(id);
+            redirectAttributes.addFlashAttribute("successMessage", "The custom print request was archived.");
+            return new ModelAndView("redirect:/admin/custom-prints");
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled or rejected requests can be archived.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/admin/custom-prints/" + id);
+    }
+
     private ModelAndView adminDetailsModelAndView(
             CustomPrintRequestDetailsClientDto request,
             CustomPrintOfferFormDto offerForm,
-            CustomPrintRejectFormDto rejectForm
+            CustomPrintRejectFormDto rejectForm,
+            String openModal
     ) {
         ModelAndView modelAndView = new ModelAndView("admin/custom-print-details");
         modelAndView.addObject("request", request);
         modelAndView.addObject("offerForm", offerForm);
         modelAndView.addObject("rejectForm", rejectForm);
+        modelAndView.addObject("openModal", openModal);
 
         return modelAndView;
+    }
+
+    private CustomPrintOfferFormDto toOfferForm(CustomPrintRequestDetailsClientDto request) {
+        CustomPrintOfferFormDto offerForm = new CustomPrintOfferFormDto();
+        offerForm.setQuotedPrice(request.quotedPrice());
+        offerForm.setEstimatedPrintTimeMinutes(request.estimatedPrintTimeMinutes());
+        offerForm.setAdminMessage(request.adminMessage());
+        offerForm.setResponseFileUrl(request.responseFileUrl());
+
+        return offerForm;
     }
 }

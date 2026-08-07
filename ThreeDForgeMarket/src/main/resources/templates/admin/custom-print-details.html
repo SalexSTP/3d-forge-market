@@ -20,7 +20,7 @@
 
     <div th:replace="~{fragments/messages :: messages}"></div>
 
-    <section class="custom-print-details-grid">
+    <section class="custom-print-centered">
         <article class="form-card">
             <div class="card-topline">
                 <h2>Request details</h2>
@@ -44,6 +44,7 @@
                 <div><dt>Color</dt><dd th:text="${request.colorDescription}">Matte black</dd></div>
                 <div><dt>Dimensions</dt><dd th:text="|${request.widthCm} x ${request.heightCm} x ${request.depthCm} cm|">10 x 8 x 4 cm</dd></div>
                 <div><dt>Quantity</dt><dd th:text="${request.quantity}">1</dd></div>
+                <div><dt>Delivery address</dt><dd th:text="${request.deliveryAddress}">Delivery address</dd></div>
                 <div>
                     <dt>Reference</dt>
                     <dd>
@@ -57,6 +58,27 @@
                               class="muted-text">
                             Not provided
                         </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Response file</dt>
+                    <dd>
+                        <a th:if="${request.responseFileUrl != null and !#strings.isEmpty(request.responseFileUrl)}"
+                           th:href="${request.responseFileUrl}"
+                           rel="noopener noreferrer"
+                           target="_blank">
+                            Open response
+                        </a>
+                        <span th:if="${request.responseFileUrl == null or #strings.isEmpty(request.responseFileUrl)}"
+                              class="muted-text">
+                            Not provided
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Latest customer message</dt>
+                    <dd th:text="${request.customerMessage != null and !#strings.isEmpty(request.customerMessage) ? request.customerMessage : 'None'}">
+                        None
                     </dd>
                 </div>
                 <div>
@@ -89,7 +111,7 @@
                     </dd>
                 </div>
                 <div>
-                    <dt>Admin message</dt>
+                    <dt>Offer message</dt>
                     <dd th:text="${request.adminMessage != null and !#strings.isEmpty(request.adminMessage) ? request.adminMessage : 'No message'}">
                         No message
                     </dd>
@@ -97,82 +119,109 @@
             </dl>
         </article>
 
-        <aside class="admin-custom-print-actions">
-            <form class="form-card"
-                  th:if="${request.pendingReview}"
-                  th:action="@{/admin/custom-prints/{id}/offer(id=${request.id})}"
-                  th:object="${offerForm}"
-                  method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <input type="hidden" name="_method" value="put">
+        <div class="admin-custom-print-action-row" th:if="${request.adminActionable}">
+            <button class="btn btn-primary"
+                    type="button"
+                    data-modal-open="offer-modal"
+                    th:text="${request.changesRequested ? 'Edit offer' : 'Send offer'}">
+                Send offer
+            </button>
+            <button class="btn btn-danger" type="button" data-modal-open="reject-modal">Reject request</button>
+        </div>
 
-                <h2>Send offer</h2>
-
-                <div class="field">
-                    <label for="quotedPrice">Quoted price</label>
-                    <input id="quotedPrice"
-                           type="number"
-                           min="0.01"
-                           step="0.01"
-                           th:field="*{quotedPrice}"
-                           required>
-                    <p class="field-error" th:if="${#fields.hasErrors('quotedPrice')}" th:errors="*{quotedPrice}">Price error.</p>
-                </div>
-
-                <div class="field">
-                    <label for="estimatedPrintTimeMinutes">Estimated print time (minutes)</label>
-                    <input id="estimatedPrintTimeMinutes"
-                           type="number"
-                           min="1"
-                           step="1"
-                           th:field="*{estimatedPrintTimeMinutes}"
-                           required>
-                    <p class="field-error" th:if="${#fields.hasErrors('estimatedPrintTimeMinutes')}" th:errors="*{estimatedPrintTimeMinutes}">Print time error.</p>
-                </div>
-
-                <div class="field">
-                    <label for="offerAdminMessage">Message <span>Optional</span></label>
-                    <textarea id="offerAdminMessage"
-                              rows="4"
-                              th:field="*{adminMessage}"
-                              maxlength="1000"></textarea>
-                    <p class="field-error" th:if="${#fields.hasErrors('adminMessage')}" th:errors="*{adminMessage}">Message error.</p>
-                </div>
-
-                <button class="btn btn-primary" type="submit">Send offer</button>
-            </form>
-
-            <form class="form-card"
-                  th:if="${request.pendingReview}"
-                  th:action="@{/admin/custom-prints/{id}/reject(id=${request.id})}"
-                  th:object="${rejectForm}"
-                  method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <input type="hidden" name="_method" value="put">
-
-                <h2>Reject request</h2>
-
-                <div class="field">
-                    <label for="rejectAdminMessage">Message</label>
-                    <textarea id="rejectAdminMessage"
-                              rows="5"
-                              th:field="*{adminMessage}"
-                              minlength="5"
-                              maxlength="1000"
-                              required></textarea>
-                    <p class="field-error" th:if="${#fields.hasErrors('adminMessage')}" th:errors="*{adminMessage}">Message error.</p>
-                </div>
-
-                <button class="btn btn-danger" type="submit">Reject request</button>
-            </form>
-
-            <section class="empty-state custom-print-closed-state"
-                     th:if="${!request.pendingReview}">
-                <h2>No admin actions available.</h2>
-                <p>Offer and rejection actions are only available while the request is pending review.</p>
-            </section>
-        </aside>
+        <form class="custom-print-archive-form"
+              th:if="${request.adminArchivable}"
+              th:action="@{/admin/custom-prints/{id}/archive(id=${request.id})}"
+              method="post"
+              data-confirm="Archive this custom print request?">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="_method" value="put">
+            <button class="btn btn-history-delete" type="submit">Archive request</button>
+        </form>
     </section>
+
+    <dialog id="offer-modal"
+            class="modal-dialog"
+            th:attr="data-auto-open=${openModal == 'offer-modal'}">
+        <form class="modal-card"
+              th:action="@{/admin/custom-prints/{id}/offer(id=${request.id})}"
+              th:object="${offerForm}"
+              method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="_method" value="put">
+
+            <div class="card-topline">
+                <h2 th:text="${request.changesRequested ? 'Edit offer' : 'Send offer'}">Send offer</h2>
+                <button class="btn btn-small btn-ghost" type="button" data-modal-close>Close</button>
+            </div>
+
+            <div class="field">
+                <label for="quotedPrice">Quoted price</label>
+                <input id="quotedPrice" type="number" min="0.01" step="0.01" th:field="*{quotedPrice}" required>
+                <p class="field-error" th:if="${#fields.hasErrors('quotedPrice')}" th:errors="*{quotedPrice}">Price error.</p>
+            </div>
+
+            <div class="field">
+                <label for="estimatedPrintTimeMinutes">Estimated print time (minutes)</label>
+                <input id="estimatedPrintTimeMinutes" type="number" min="1" step="1" th:field="*{estimatedPrintTimeMinutes}" required>
+                <p class="field-error" th:if="${#fields.hasErrors('estimatedPrintTimeMinutes')}" th:errors="*{estimatedPrintTimeMinutes}">Print time error.</p>
+            </div>
+
+            <div class="field">
+                <label for="responseFileUrl">Response file URL <span>Optional</span></label>
+                <input id="responseFileUrl" type="url" th:field="*{responseFileUrl}" maxlength="500">
+                <p class="field-error" th:if="${#fields.hasErrors('responseFileUrl')}" th:errors="*{responseFileUrl}">Response file error.</p>
+            </div>
+
+            <div class="field">
+                <label for="offerAdminMessage">Offer message <span>Optional</span></label>
+                <textarea id="offerAdminMessage" rows="4" th:field="*{adminMessage}" maxlength="1000"></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('adminMessage')}" th:errors="*{adminMessage}">Message error.</p>
+            </div>
+
+            <div class="action-row">
+                <button class="btn btn-primary"
+                        type="submit"
+                        th:text="${request.changesRequested ? 'Save offer' : 'Send offer'}">
+                    Send offer
+                </button>
+                <button class="btn btn-ghost" type="button" data-modal-close>Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="reject-modal"
+            class="modal-dialog"
+            th:attr="data-auto-open=${openModal == 'reject-modal'}">
+        <form class="modal-card"
+              th:action="@{/admin/custom-prints/{id}/reject(id=${request.id})}"
+              th:object="${rejectForm}"
+              method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="_method" value="put">
+
+            <div class="card-topline">
+                <h2>Reject request</h2>
+                <button class="btn btn-small btn-ghost" type="button" data-modal-close>Close</button>
+            </div>
+
+            <div class="field">
+                <label for="rejectAdminMessage">Message</label>
+                <textarea id="rejectAdminMessage"
+                          rows="5"
+                          th:field="*{adminMessage}"
+                          minlength="5"
+                          maxlength="1000"
+                          required></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('adminMessage')}" th:errors="*{adminMessage}">Message error.</p>
+            </div>
+
+            <div class="action-row">
+                <button class="btn btn-danger" type="submit">Reject request</button>
+                <button class="btn btn-ghost" type="button" data-modal-close>Cancel</button>
+            </div>
+        </form>
+    </dialog>
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>

@@ -124,6 +124,17 @@
             <p class="field-error" th:if="${#fields.hasErrors('referenceFileUrl')}" th:errors="*{referenceFileUrl}">Reference URL error.</p>
         </div>
 
+        <div class="field full-span">
+            <label for="deliveryAddress">Delivery address</label>
+            <textarea id="deliveryAddress"
+                      rows="3"
+                      th:field="*{deliveryAddress}"
+                      minlength="10"
+                      maxlength="250"
+                      required></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('deliveryAddress')}" th:errors="*{deliveryAddress}">Delivery address error.</p>
+        </div>
+
         <div class="action-row full-span">
             <button class="btn btn-primary" type="submit">Submit request</button>
             <a class="btn btn-ghost" th:href="@{/custom-prints}">Cancel</a>

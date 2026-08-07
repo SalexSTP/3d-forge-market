@@ -53,4 +53,8 @@ public class CustomPrintRequestFormDto {
 
     @Size(max = 500, message = "Reference file URL must not exceed 500 characters.")
     private String referenceFileUrl;
+
+    @NotBlank(message = "Delivery address is required.")
+    @Size(min = 10, max = 250, message = "Delivery address must be between 10 and 250 characters.")
+    private String deliveryAddress;
 }
