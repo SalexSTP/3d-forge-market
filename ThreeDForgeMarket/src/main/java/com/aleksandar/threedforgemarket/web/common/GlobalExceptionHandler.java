@@ -1,6 +1,9 @@
 package com.aleksandar.threedforgemarket.web.common;
 
 import com.aleksandar.threedforgemarket.exception.auth.*;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestNotFoundException;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
@@ -31,6 +34,7 @@ public class GlobalExceptionHandler {
             CustomerOrderNotFoundException.class,
             ReviewNotFoundException.class,
             UserNotFoundException.class,
+            CustomPrintRequestNotFoundException.class,
             NoResourceFoundException.class
     })
     public ModelAndView handleNotFound() {
@@ -70,10 +74,16 @@ public class GlobalExceptionHandler {
             ProductDeletionNotAllowedException.class,
             ProductNameAlreadyExistsException.class,
             ReviewAlreadyExistsException.class,
-            ReviewEligibilityNotMetException.class
+            ReviewEligibilityNotMetException.class,
+            CustomPrintRequestOperationFailedException.class
     })
     public ModelAndView handleDomainConflict() {
         return errorView("error/409", HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(CustomPrintServiceUnavailableException.class)
+    public ModelAndView handleCustomPrintServiceUnavailable() {
+        return errorView("error/500", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ModelAndView errorView(String viewName, HttpStatus status) {

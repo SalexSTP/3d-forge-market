@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New custom print | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="narrow-page">
+    <section class="page-heading">
+        <p class="eyebrow">Custom prints</p>
+        <h1>New custom print request</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <form class="form-card form-grid"
+          th:action="@{/custom-prints}"
+          th:object="${requestForm}"
+          method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="field full-span">
+            <label for="title">Title</label>
+            <input id="title"
+                   type="text"
+                   th:field="*{title}"
+                   minlength="5"
+                   maxlength="80"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error.</p>
+        </div>
+
+        <div class="field full-span">
+            <label for="description">Description</label>
+            <textarea id="description"
+                      rows="7"
+                      th:field="*{description}"
+                      minlength="20"
+                      maxlength="2000"
+                      required></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error.</p>
+        </div>
+
+        <div class="field">
+            <label for="material">Material</label>
+            <input id="material"
+                   type="text"
+                   th:field="*{material}"
+                   minlength="2"
+                   maxlength="50"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('material')}" th:errors="*{material}">Material error.</p>
+        </div>
+
+        <div class="field">
+            <label for="colorDescription">Color</label>
+            <input id="colorDescription"
+                   type="text"
+                   th:field="*{colorDescription}"
+                   minlength="2"
+                   maxlength="80"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('colorDescription')}" th:errors="*{colorDescription}">Color error.</p>
+        </div>
+
+        <div class="field">
+            <label for="widthCm">Width (cm)</label>
+            <input id="widthCm"
+                   type="number"
+                   min="0.01"
+                   max="500"
+                   step="0.01"
+                   th:field="*{widthCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('widthCm')}" th:errors="*{widthCm}">Width error.</p>
+        </div>
+
+        <div class="field">
+            <label for="heightCm">Height (cm)</label>
+            <input id="heightCm"
+                   type="number"
+                   min="0.01"
+                   max="500"
+                   step="0.01"
+                   th:field="*{heightCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('heightCm')}" th:errors="*{heightCm}">Height error.</p>
+        </div>
+
+        <div class="field">
+            <label for="depthCm">Depth (cm)</label>
+            <input id="depthCm"
+                   type="number"
+                   min="0.01"
+                   max="500"
+                   step="0.01"
+                   th:field="*{depthCm}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('depthCm')}" th:errors="*{depthCm}">Depth error.</p>
+        </div>
+
+        <div class="field">
+            <label for="quantity">Quantity</label>
+            <input id="quantity"
+                   type="number"
+                   min="1"
+                   max="50"
+                   step="1"
+                   th:field="*{quantity}"
+                   required>
+            <p class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}">Quantity error.</p>
+        </div>
+
+        <div class="field full-span">
+            <label for="referenceFileUrl">Reference file URL <span>Optional</span></label>
+            <input id="referenceFileUrl"
+                   type="url"
+                   th:field="*{referenceFileUrl}"
+                   maxlength="500">
+            <p class="field-error" th:if="${#fields.hasErrors('referenceFileUrl')}" th:errors="*{referenceFileUrl}">Reference URL error.</p>
+        </div>
+
+        <div class="action-row full-span">
+            <button class="btn btn-primary" type="submit">Submit request</button>
+            <a class="btn btn-ghost" th:href="@{/custom-prints}">Cancel</a>
+        </div>
+    </form>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -622,6 +622,21 @@ main {
     color: var(--status-pending);
 }
 
+.status-pending_review {
+    background: #fff8db;
+    color: var(--status-pending);
+}
+
+.status-offer_sent {
+    background: #e8f7f5;
+    color: var(--color-primary-dark);
+}
+
+.status-accepted {
+    background: var(--color-success-bg);
+    color: var(--status-delivered);
+}
+
 .status-confirmed,
 .status-printing,
 .status-in_progress,
@@ -996,6 +1011,23 @@ textarea:focus {
     align-items: start;
 }
 
+.custom-print-details-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+    gap: var(--space-xl);
+    align-items: start;
+    margin-top: var(--space-lg);
+}
+
+.admin-custom-print-actions {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.custom-print-closed-state {
+    margin-top: 0;
+}
+
 .readonly-total {
     display: flex;
     justify-content: space-between;
@@ -1110,6 +1142,18 @@ tr:last-child td {
     border-color: rgba(51, 65, 85, 0.18);
     background: #f8fbfd;
     color: var(--color-secondary);
+}
+
+.btn-reactivate {
+    border-color: rgba(8, 116, 67, 0.24);
+    background: #ecfdf3;
+    color: var(--color-success);
+    box-shadow: 0 6px 14px rgba(8, 116, 67, 0.08);
+}
+
+.btn-reactivate:hover {
+    background: #dff8ea;
+    color: #05603a;
 }
 
 .subtle {
@@ -1381,7 +1425,8 @@ tr:last-child td {
     .hero,
     .auth-shell,
     .details-layout,
-    .order-layout {
+    .order-layout,
+    .custom-print-details-grid {
         grid-template-columns: 1fr;
     }
 

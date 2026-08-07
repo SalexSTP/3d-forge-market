@@ -37,6 +37,8 @@ public class SecurityConfiguration {
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/profile", "/profile/**").authenticated()
+                        .requestMatchers("/custom-prints", "/custom-prints/**").hasRole("CUSTOMER")
+                        .requestMatchers("/admin/custom-prints", "/admin/custom-prints/**").hasRole("ADMIN")
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                         .requestMatchers("/orders", "/orders/**").hasRole("CUSTOMER")
                         .requestMatchers("/reviews", "/reviews/**").hasRole("CUSTOMER")

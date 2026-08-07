@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom prints | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main>
+    <section class="page-heading with-action">
+        <div>
+            <p class="eyebrow">Custom prints</p>
+            <h1>My custom print requests</h1>
+        </div>
+        <a class="btn btn-primary" th:href="@{/custom-prints/new}">New request</a>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="responsive-table"
+             th:if="${requests != null and !#lists.isEmpty(requests)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Material</th>
+                <th>Color</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Quoted price</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="request : ${requests}">
+                <td data-label="Title" th:text="${request.title}">Prototype bracket</td>
+                <td data-label="Material" th:text="${request.material}">PLA</td>
+                <td data-label="Color" th:text="${request.colorDescription}">Matte black</td>
+                <td data-label="Quantity" th:text="${request.quantity}">1</td>
+                <td data-label="Status">
+                    <span th:class="|status-badge status-${#strings.toLowerCase(request.status.name())}|"
+                          th:text="${request.status.displayName}">
+                        Pending review
+                    </span>
+                </td>
+                <td data-label="Created">
+                    <time th:datetime="${#temporals.format(request.createdOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.createdOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                </td>
+                <td data-label="Quoted price">
+                    <span th:if="${request.quotedPrice != null}"
+                          th:text="|EUR ${#numbers.formatDecimal(request.quotedPrice, 1, 2)}|">
+                        EUR 42.00
+                    </span>
+                    <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
+                </td>
+                <td data-label="Actions">
+                    <a class="btn btn-small btn-ghost"
+                       th:href="@{/custom-prints/{id}(id=${request.id})}">
+                        Details
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="empty-state"
+             th:if="${requests == null or #lists.isEmpty(requests)}">
+        <p class="eyebrow">Request queue</p>
+        <h2>No custom print requests yet.</h2>
+        <p>Submit dimensions, material, color, and reference details for a custom quote.</p>
+        <a class="btn btn-primary" th:href="@{/custom-prints/new}">Create request</a>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
