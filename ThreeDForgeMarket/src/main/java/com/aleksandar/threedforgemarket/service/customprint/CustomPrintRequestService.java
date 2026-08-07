@@ -11,8 +11,10 @@ import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintReque
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.integration.customprint.RejectCustomPrintRequestClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.RequestCustomPrintChangesClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintFulfillmentStatusClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintOfferClientDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintChangeRequestFormDto;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintFulfillmentStatusFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRequestFormDto;
@@ -213,6 +215,22 @@ public class CustomPrintRequestService {
         try {
             customPrintRequestClient.rejectRequest(requestId, rejectDto);
             LOGGER.info("Rejected custom print request {}", requestId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    public void updateFulfillmentStatus(
+            UUID requestId,
+            CustomPrintFulfillmentStatusFormDto formDto
+    ) {
+        UpdateCustomPrintFulfillmentStatusClientDto statusDto = new UpdateCustomPrintFulfillmentStatusClientDto(
+                formDto.getStatus()
+        );
+
+        try {
+            customPrintRequestClient.updateFulfillmentStatus(requestId, statusDto);
+            LOGGER.info("Updated custom print fulfillment status for request {} to {}", requestId, formDto.getStatus());
         } catch (FeignException exception) {
             throw translateFeignException(exception);
         }

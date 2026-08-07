@@ -62,6 +62,12 @@ public interface CustomPrintRequestClient {
             @RequestBody RejectCustomPrintRequestClientDto rejectDto
     );
 
+    @PutMapping("/api/custom-print-requests/{requestId}/fulfillment-status")
+    CustomPrintRequestDetailsClientDto updateFulfillmentStatus(
+            @PathVariable("requestId") UUID requestId,
+            @RequestBody UpdateCustomPrintFulfillmentStatusClientDto statusDto
+    );
+
     @PutMapping("/api/custom-print-requests/customer/{customerId}/{requestId}/accept")
     CustomPrintRequestDetailsClientDto acceptOffer(
             @PathVariable("customerId") UUID customerId,

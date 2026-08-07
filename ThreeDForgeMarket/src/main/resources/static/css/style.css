@@ -1067,6 +1067,55 @@ textarea:focus {
     grid-template-columns: minmax(190px, 1.3fr) minmax(150px, 0.8fr) repeat(2, minmax(140px, 0.75fr)) auto auto;
 }
 
+.production-status-panel,
+.fulfillment-action-panel {
+    width: min(100%, 820px);
+}
+
+.production-timeline {
+    display: grid;
+    gap: var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.production-timeline li {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: #f8fbfd;
+}
+
+.production-timeline li::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    grid-row: 1 / span 2;
+}
+
+.production-timeline li.is-complete::before {
+    border-color: var(--color-success);
+    background: var(--color-success);
+}
+
+.production-timeline span {
+    font-weight: 900;
+}
+
+.production-timeline em {
+    color: var(--color-muted);
+    font-style: normal;
+    font-weight: 700;
+}
+
 .table-action-btn {
     min-width: 82px;
 }

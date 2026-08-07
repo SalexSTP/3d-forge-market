@@ -5,6 +5,7 @@ import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequest
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
+import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintFulfillmentStatusFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
@@ -73,6 +74,7 @@ public class AdminCustomPrintRequestController {
                     request,
                     toOfferForm(request),
                     new CustomPrintRejectFormDto(),
+                    new CustomPrintFulfillmentStatusFormDto(),
                     null
             );
 
@@ -106,6 +108,7 @@ public class AdminCustomPrintRequestController {
                         request,
                         offerForm,
                         new CustomPrintRejectFormDto(),
+                        new CustomPrintFulfillmentStatusFormDto(),
                         "offer-modal"
                 );
             } catch (CustomPrintServiceUnavailableException exception) {
@@ -156,6 +159,7 @@ public class AdminCustomPrintRequestController {
                         request,
                         toOfferForm(request),
                         rejectForm,
+                        new CustomPrintFulfillmentStatusFormDto(),
                         "reject-modal"
                 );
             } catch (CustomPrintServiceUnavailableException exception) {
@@ -191,6 +195,35 @@ public class AdminCustomPrintRequestController {
         return new ModelAndView("redirect:/admin/custom-prints/" + id);
     }
 
+    @PutMapping("/{id}/fulfillment-status")
+    public ModelAndView updateFulfillmentStatus(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("fulfillmentStatusForm") CustomPrintFulfillmentStatusFormDto fulfillmentStatusForm,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please choose a valid fulfillment status.");
+            return new ModelAndView("redirect:/admin/custom-prints/" + id);
+        }
+
+        try {
+            customPrintRequestService.updateFulfillmentStatus(id, fulfillmentStatusForm);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Custom print status was updated successfully."
+            );
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This custom print status cannot be updated that way.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/admin/custom-prints/" + id);
+    }
+
     @PutMapping("/{id}/archive")
     public ModelAndView archiveRequest(
             @PathVariable UUID id,
@@ -203,7 +236,7 @@ public class AdminCustomPrintRequestController {
         } catch (CustomPrintRequestNotFoundException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
         } catch (CustomPrintRequestOperationFailedException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled or rejected requests can be archived.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled, rejected, or delivered requests can be archived.");
         } catch (CustomPrintServiceUnavailableException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
@@ -215,12 +248,14 @@ public class AdminCustomPrintRequestController {
             CustomPrintRequestDetailsClientDto request,
             CustomPrintOfferFormDto offerForm,
             CustomPrintRejectFormDto rejectForm,
+            CustomPrintFulfillmentStatusFormDto fulfillmentStatusForm,
             String openModal
     ) {
         ModelAndView modelAndView = new ModelAndView("admin/custom-print-details");
         modelAndView.addObject("request", request);
         modelAndView.addObject("offerForm", offerForm);
         modelAndView.addObject("rejectForm", rejectForm);
+        modelAndView.addObject("fulfillmentStatusForm", fulfillmentStatusForm);
         modelAndView.addObject("openModal", openModal);
 
         return modelAndView;

@@ -29,6 +29,9 @@ public record CustomPrintRequestListItemClientDto(
         LocalDateTime quotedOn,
         LocalDateTime cancelledOn,
         LocalDateTime customerRespondedOn,
-        LocalDateTime acceptedOn
+        LocalDateTime acceptedOn,
+        LocalDateTime printingStartedOn,
+        LocalDateTime readyForDeliveryOn,
+        LocalDateTime deliveredOn
 ) {
 }

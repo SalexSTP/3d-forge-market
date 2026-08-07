@@ -154,6 +154,49 @@
                 </form>
             </div>
         </aside>
+
+        <section class="form-card full-span production-status-panel"
+                 th:if="${request.fulfillmentVisible}">
+            <h2>Production status</h2>
+            <ol class="production-timeline">
+                <li th:classappend="${request.acceptedOn != null} ? 'is-complete'">
+                    <span>Accepted</span>
+                    <time th:if="${request.acceptedOn != null}"
+                          th:datetime="${#temporals.format(request.acceptedOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.acceptedOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <em th:if="${request.acceptedOn == null}">Not available yet</em>
+                </li>
+                <li th:classappend="${request.printingStartedOn != null} ? 'is-complete'">
+                    <span>Printing started</span>
+                    <time th:if="${request.printingStartedOn != null}"
+                          th:datetime="${#temporals.format(request.printingStartedOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.printingStartedOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <em th:if="${request.printingStartedOn == null}">Not started yet</em>
+                </li>
+                <li th:classappend="${request.readyForDeliveryOn != null} ? 'is-complete'">
+                    <span>Ready for delivery</span>
+                    <time th:if="${request.readyForDeliveryOn != null}"
+                          th:datetime="${#temporals.format(request.readyForDeliveryOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.readyForDeliveryOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <em th:if="${request.readyForDeliveryOn == null}">Not ready yet</em>
+                </li>
+                <li th:classappend="${request.deliveredOn != null} ? 'is-complete'">
+                    <span>Delivered</span>
+                    <time th:if="${request.deliveredOn != null}"
+                          th:datetime="${#temporals.format(request.deliveredOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.deliveredOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <em th:if="${request.deliveredOn == null}">Not delivered yet</em>
+                </li>
+            </ol>
+        </section>
     </section>
 
     <dialog id="change-request-modal"

@@ -237,7 +237,7 @@ public class CustomPrintRequestController {
         } catch (CustomPrintRequestNotFoundException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
         } catch (CustomPrintRequestOperationFailedException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled or rejected requests can be removed.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled, rejected, or delivered requests can be removed.");
         } catch (CustomPrintServiceUnavailableException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
