@@ -37,6 +37,13 @@ public interface CustomPrintRequestClient {
             @PathVariable("requestId") UUID requestId
     );
 
+    @PutMapping("/api/custom-print-requests/customer/{customerId}/{requestId}")
+    CustomPrintRequestDetailsClientDto updateCustomerRequest(
+            @PathVariable("customerId") UUID customerId,
+            @PathVariable("requestId") UUID requestId,
+            @RequestBody UpdateCustomPrintRequestClientDto requestDto
+    );
+
     @GetMapping("/api/custom-print-requests")
     List<CustomPrintRequestListItemClientDto> getAllRequests(
             @RequestParam(value = "keyword", required = false) String keyword,

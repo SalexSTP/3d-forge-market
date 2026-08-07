@@ -134,6 +134,61 @@ public class CustomPrintRequestController {
         return new ModelAndView("redirect:/custom-prints");
     }
 
+    @GetMapping("/{id}/edit")
+    public ModelAndView getEditRequestPage(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            return editRequestModelAndView(
+                    id,
+                    customPrintRequestService.getEditForm(currentUser.getId(), id)
+            );
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+            return new ModelAndView("redirect:/custom-prints");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+            return new ModelAndView("redirect:/custom-prints");
+        }
+
+        return new ModelAndView("redirect:/custom-prints/" + id);
+    }
+
+    @PutMapping("/{id}")
+    public ModelAndView updateRequest(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("requestForm") CustomPrintRequestFormDto requestForm,
+            BindingResult bindingResult,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            return editRequestModelAndView(id, requestForm);
+        }
+
+        try {
+            customPrintRequestService.updateCustomerRequest(currentUser.getId(), id, requestForm);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Your custom print request was updated successfully."
+            );
+            return new ModelAndView("redirect:/custom-prints/" + id);
+        } catch (CustomPrintRequestNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
+            return new ModelAndView("redirect:/custom-prints");
+        } catch (CustomPrintRequestOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only pending custom print requests can be edited.");
+        } catch (CustomPrintServiceUnavailableException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+
+        return new ModelAndView("redirect:/custom-prints/" + id);
+    }
+
     @PutMapping("/{id}/cancel")
     public ModelAndView cancelRequest(
             @PathVariable UUID id,
@@ -254,6 +309,17 @@ public class CustomPrintRequestController {
         modelAndView.addObject("request", request);
         modelAndView.addObject("changeRequestForm", changeRequestForm);
         modelAndView.addObject("openModal", openModal);
+
+        return modelAndView;
+    }
+
+    private ModelAndView editRequestModelAndView(
+            UUID requestId,
+            CustomPrintRequestFormDto requestForm
+    ) {
+        ModelAndView modelAndView = new ModelAndView("custom-print/edit");
+        modelAndView.addObject("requestId", requestId);
+        modelAndView.addObject("requestForm", requestForm);
 
         return modelAndView;
     }

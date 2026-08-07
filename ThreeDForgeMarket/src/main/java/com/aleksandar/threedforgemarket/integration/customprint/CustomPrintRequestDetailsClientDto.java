@@ -41,6 +41,10 @@ public record CustomPrintRequestDetailsClientDto(
         return status == CustomPrintRequestStatus.PENDING_REVIEW;
     }
 
+    public boolean isEditable() {
+        return isPendingReview();
+    }
+
     public boolean isOfferSent() {
         return status == CustomPrintRequestStatus.OFFER_SENT;
     }

@@ -135,6 +135,12 @@
                     Request changes
                 </button>
 
+                <a th:if="${request.editable}"
+                   class="btn btn-ghost btn-wide"
+                   th:href="@{/custom-prints/{id}/edit(id=${request.id})}">
+                    Edit request
+                </a>
+
                 <form th:if="${request.cancellable}"
                       th:action="@{/custom-prints/{id}/cancel(id=${request.id})}"
                       method="post"

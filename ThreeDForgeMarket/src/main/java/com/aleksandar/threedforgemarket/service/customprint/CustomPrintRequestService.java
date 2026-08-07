@@ -13,6 +13,7 @@ import com.aleksandar.threedforgemarket.integration.customprint.RejectCustomPrin
 import com.aleksandar.threedforgemarket.integration.customprint.RequestCustomPrintChangesClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintFulfillmentStatusClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintOfferClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.UpdateCustomPrintRequestClientDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintChangeRequestFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintFulfillmentStatusFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
@@ -79,6 +80,18 @@ public class CustomPrintRequestService {
         }
     }
 
+    public CustomPrintRequestFormDto getEditForm(UUID customerId, UUID requestId) {
+        CustomPrintRequestDetailsClientDto request = getCustomerRequestDetails(customerId, requestId);
+
+        if (!request.isEditable()) {
+            throw new CustomPrintRequestOperationFailedException(
+                    "Only pending custom print requests can be edited."
+            );
+        }
+
+        return toRequestForm(request);
+    }
+
     public void createCustomerRequest(
             UUID customerId,
             CustomPrintRequestFormDto formDto
@@ -120,6 +133,21 @@ public class CustomPrintRequestService {
         try {
             customPrintRequestClient.cancelCustomerRequest(customerId, requestId);
             LOGGER.info("Cancelled custom print request {} for customer {}", requestId, customerId);
+        } catch (FeignException exception) {
+            throw translateFeignException(exception);
+        }
+    }
+
+    public void updateCustomerRequest(
+            UUID customerId,
+            UUID requestId,
+            CustomPrintRequestFormDto formDto
+    ) {
+        UpdateCustomPrintRequestClientDto requestDto = toUpdateRequestDto(formDto);
+
+        try {
+            customPrintRequestClient.updateCustomerRequest(customerId, requestId, requestDto);
+            LOGGER.info("Updated custom print request {} for customer {}", requestId, customerId);
         } catch (FeignException exception) {
             throw translateFeignException(exception);
         }
@@ -285,6 +313,37 @@ public class CustomPrintRequestService {
 
     private String formatDateTime(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+
+    private CustomPrintRequestFormDto toRequestForm(CustomPrintRequestDetailsClientDto request) {
+        CustomPrintRequestFormDto formDto = new CustomPrintRequestFormDto();
+        formDto.setTitle(request.title());
+        formDto.setDescription(request.description());
+        formDto.setMaterial(request.material());
+        formDto.setColorDescription(request.colorDescription());
+        formDto.setWidthCm(request.widthCm());
+        formDto.setHeightCm(request.heightCm());
+        formDto.setDepthCm(request.depthCm());
+        formDto.setQuantity(request.quantity());
+        formDto.setDeliveryAddress(request.deliveryAddress());
+        formDto.setReferenceFileUrl(request.referenceFileUrl());
+
+        return formDto;
+    }
+
+    private UpdateCustomPrintRequestClientDto toUpdateRequestDto(CustomPrintRequestFormDto formDto) {
+        return new UpdateCustomPrintRequestClientDto(
+                formDto.getTitle(),
+                formDto.getDescription(),
+                formDto.getMaterial(),
+                formDto.getColorDescription(),
+                formDto.getWidthCm(),
+                formDto.getHeightCm(),
+                formDto.getDepthCm(),
+                formDto.getQuantity(),
+                formDto.getDeliveryAddress().strip(),
+                normalizeOptionalText(formDto.getReferenceFileUrl())
+        );
     }
 
     private RuntimeException translateFeignException(FeignException exception) {
