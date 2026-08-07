@@ -10,6 +10,7 @@ import com.aleksandar.customprintservice.model.dto.RejectCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.dto.RequestCustomPrintChangesDto;
 import com.aleksandar.customprintservice.model.dto.SendCustomPrintOfferDto;
 import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintFulfillmentStatusDto;
+import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.entity.CustomPrintRequest;
 import com.aleksandar.customprintservice.model.enums.CustomPrintRequestStatus;
 import com.aleksandar.customprintservice.repository.CustomPrintRequestRepository;
@@ -78,6 +79,21 @@ public class CustomPrintRequestService {
     public CustomPrintRequestDetailsDto getCustomerRequestDetails(UUID requestId, UUID customerId) {
         CustomPrintRequest request = customPrintRequestRepository.findByIdAndCustomerId(requestId, customerId)
                 .orElseThrow(() -> new CustomPrintRequestNotFoundException(REQUEST_NOT_FOUND_MESSAGE));
+
+        return customPrintRequestMapper.toDetailsDto(request);
+    }
+
+    @Transactional
+    public CustomPrintRequestDetailsDto updateCustomerRequest(UUID requestId, UUID customerId, UpdateCustomPrintRequestDto requestDto) {
+        CustomPrintRequest request = findCustomerRequestById(requestId, customerId);
+
+        if (request.getStatus() != CustomPrintRequestStatus.PENDING_REVIEW) {
+            throw new CustomPrintRequestOperationNotAllowedException("Only pending custom print requests can be edited.");
+        }
+
+        customPrintRequestMapper.updateEntity(request, requestDto);
+
+        log.info("Updated pending custom print request");
 
         return customPrintRequestMapper.toDetailsDto(request);
     }

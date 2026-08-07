@@ -7,6 +7,7 @@ import com.aleksandar.customprintservice.model.dto.RejectCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.dto.RequestCustomPrintChangesDto;
 import com.aleksandar.customprintservice.model.dto.SendCustomPrintOfferDto;
 import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintFulfillmentStatusDto;
+import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.enums.CustomPrintRequestStatus;
 import com.aleksandar.customprintservice.service.CustomPrintRequestService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,6 +80,19 @@ public class CustomPrintRequestController {
             @PathVariable UUID requestId) {
 
         return ResponseEntity.ok(customPrintRequestService.getCustomerRequestDetails(requestId, customerId));
+    }
+
+    @PutMapping("/customer/{customerId}/{requestId}")
+    @Operation(summary = "Edit pending customer request", description = "Allows a customer to edit the original request only while it is PENDING_REVIEW and before any admin response.")
+    @ApiResponse(responseCode = "200", description = "Custom print request updated.")
+    @ApiResponse(responseCode = "400", description = "Validation failed, invalid path parameter, or operation is not allowed.")
+    @ApiResponse(responseCode = "404", description = "Custom print request was not found.")
+    public ResponseEntity<CustomPrintRequestDetailsDto> updateCustomerRequest(
+            @PathVariable UUID customerId,
+            @PathVariable UUID requestId,
+            @Valid @RequestBody UpdateCustomPrintRequestDto requestDto) {
+
+        return ResponseEntity.ok(customPrintRequestService.updateCustomerRequest(requestId, customerId, requestDto));
     }
 
     @GetMapping

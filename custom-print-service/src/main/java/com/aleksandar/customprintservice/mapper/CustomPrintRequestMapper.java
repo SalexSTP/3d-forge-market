@@ -3,6 +3,7 @@ package com.aleksandar.customprintservice.mapper;
 import com.aleksandar.customprintservice.model.dto.CreateCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.dto.CustomPrintRequestDetailsDto;
 import com.aleksandar.customprintservice.model.dto.CustomPrintRequestListItemDto;
+import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.entity.CustomPrintRequest;
 import com.aleksandar.customprintservice.model.enums.CustomPrintRequestStatus;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,19 @@ public class CustomPrintRequestMapper {
         request.setStatus(CustomPrintRequestStatus.PENDING_REVIEW);
 
         return request;
+    }
+
+    public void updateEntity(CustomPrintRequest request, UpdateCustomPrintRequestDto requestDto) {
+        request.setTitle(requestDto.title());
+        request.setDescription(requestDto.description());
+        request.setMaterial(requestDto.material());
+        request.setColorDescription(requestDto.colorDescription());
+        request.setDeliveryAddress(requestDto.deliveryAddress());
+        request.setWidthCm(requestDto.widthCm());
+        request.setHeightCm(requestDto.heightCm());
+        request.setDepthCm(requestDto.depthCm());
+        request.setQuantity(requestDto.quantity());
+        request.setReferenceFileUrl(requestDto.referenceFileUrl());
     }
 
     public CustomPrintRequestListItemDto toListItemDto(CustomPrintRequest request) {
