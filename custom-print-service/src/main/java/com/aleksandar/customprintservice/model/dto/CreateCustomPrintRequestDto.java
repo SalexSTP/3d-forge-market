@@ -41,6 +41,10 @@ public record CreateCustomPrintRequestDto(
         @Size(min = 2, max = 80, message = "Color description must be between 2 and 80 characters.")
         String colorDescription,
 
+        @NotBlank(message = "Delivery address is required.")
+        @Size(min = 10, max = 250, message = "Delivery address must be between 10 and 250 characters.")
+        String deliveryAddress,
+
         @NotNull(message = "Width is required.")
         @Positive(message = "Width must be positive.")
         @DecimalMax(value = "500", message = "Width must be at most 500 cm.")

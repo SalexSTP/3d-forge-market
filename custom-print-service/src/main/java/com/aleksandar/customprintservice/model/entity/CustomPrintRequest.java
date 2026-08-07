@@ -49,6 +49,9 @@ public class CustomPrintRequest {
     @Column(nullable = false, length = 80)
     private String colorDescription;
 
+    @Column(nullable = false, length = 250)
+    private String deliveryAddress;
+
     @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal widthCm;
 
@@ -64,6 +67,9 @@ public class CustomPrintRequest {
     @Column(length = 500)
     private String referenceFileUrl;
 
+    @Column(length = 500)
+    private String responseFileUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private CustomPrintRequestStatus status;
@@ -76,6 +82,9 @@ public class CustomPrintRequest {
     @Column(length = 1000)
     private String adminMessage;
 
+    @Column(length = 1000)
+    private String customerMessage;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
 
@@ -84,7 +93,21 @@ public class CustomPrintRequest {
 
     private LocalDateTime quotedOn;
 
+    private LocalDateTime customerRespondedOn;
+
+    private LocalDateTime acceptedOn;
+
     private LocalDateTime cancelledOn;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hiddenFromCustomer = false;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hiddenFromAdmin = false;
+
+    private LocalDateTime hiddenFromCustomerOn;
+
+    private LocalDateTime hiddenFromAdminOn;
 
     @PrePersist
     public void prePersist() {

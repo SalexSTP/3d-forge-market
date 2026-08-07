@@ -15,18 +15,23 @@ public record CustomPrintRequestDetailsDto(
         String description,
         String material,
         String colorDescription,
+        String deliveryAddress,
         BigDecimal widthCm,
         BigDecimal heightCm,
         BigDecimal depthCm,
         Integer quantity,
         String referenceFileUrl,
+        String responseFileUrl,
         CustomPrintRequestStatus status,
         BigDecimal quotedPrice,
         Integer estimatedPrintTimeMinutes,
         String adminMessage,
+        String customerMessage,
         LocalDateTime createdOn,
         LocalDateTime updatedOn,
         LocalDateTime quotedOn,
+        LocalDateTime customerRespondedOn,
+        LocalDateTime acceptedOn,
         LocalDateTime cancelledOn
 ) {
 }

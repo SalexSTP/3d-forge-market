@@ -19,6 +19,7 @@ public class CustomPrintRequestMapper {
         request.setDescription(requestDto.description());
         request.setMaterial(requestDto.material());
         request.setColorDescription(requestDto.colorDescription());
+        request.setDeliveryAddress(requestDto.deliveryAddress());
         request.setWidthCm(requestDto.widthCm());
         request.setHeightCm(requestDto.heightCm());
         request.setDepthCm(requestDto.depthCm());
@@ -38,18 +39,23 @@ public class CustomPrintRequestMapper {
                 request.getTitle(),
                 request.getMaterial(),
                 request.getColorDescription(),
+                request.getDeliveryAddress(),
                 request.getWidthCm(),
                 request.getHeightCm(),
                 request.getDepthCm(),
                 request.getQuantity(),
                 request.getReferenceFileUrl(),
+                request.getResponseFileUrl(),
                 request.getStatus(),
                 request.getQuotedPrice(),
                 request.getEstimatedPrintTimeMinutes(),
                 request.getAdminMessage(),
+                request.getCustomerMessage(),
                 request.getCreatedOn(),
                 request.getUpdatedOn(),
                 request.getQuotedOn(),
+                request.getCustomerRespondedOn(),
+                request.getAcceptedOn(),
                 request.getCancelledOn()
         );
     }
@@ -64,18 +70,23 @@ public class CustomPrintRequestMapper {
                 request.getDescription(),
                 request.getMaterial(),
                 request.getColorDescription(),
+                request.getDeliveryAddress(),
                 request.getWidthCm(),
                 request.getHeightCm(),
                 request.getDepthCm(),
                 request.getQuantity(),
                 request.getReferenceFileUrl(),
+                request.getResponseFileUrl(),
                 request.getStatus(),
                 request.getQuotedPrice(),
                 request.getEstimatedPrintTimeMinutes(),
                 request.getAdminMessage(),
+                request.getCustomerMessage(),
                 request.getCreatedOn(),
                 request.getUpdatedOn(),
                 request.getQuotedOn(),
+                request.getCustomerRespondedOn(),
+                request.getAcceptedOn(),
                 request.getCancelledOn()
         );
     }

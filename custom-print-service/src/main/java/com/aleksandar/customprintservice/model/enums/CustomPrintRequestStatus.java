@@ -3,6 +3,7 @@ package com.aleksandar.customprintservice.model.enums;
 public enum CustomPrintRequestStatus {
     PENDING_REVIEW("Pending review"),
     OFFER_SENT("Offer sent"),
+    CHANGES_REQUESTED("Changes requested"),
     ACCEPTED("Accepted"),
     REJECTED("Rejected"),
     CANCELLED("Cancelled");
