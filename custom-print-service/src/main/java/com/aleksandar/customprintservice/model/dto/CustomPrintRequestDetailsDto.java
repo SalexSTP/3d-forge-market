@@ -32,6 +32,9 @@ public record CustomPrintRequestDetailsDto(
         LocalDateTime quotedOn,
         LocalDateTime customerRespondedOn,
         LocalDateTime acceptedOn,
+        LocalDateTime printingStartedOn,
+        LocalDateTime readyForDeliveryOn,
+        LocalDateTime deliveredOn,
         LocalDateTime cancelledOn
 ) {
 }

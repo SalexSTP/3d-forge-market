@@ -9,6 +9,7 @@ import com.aleksandar.customprintservice.model.dto.CustomPrintRequestListItemDto
 import com.aleksandar.customprintservice.model.dto.RejectCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.dto.RequestCustomPrintChangesDto;
 import com.aleksandar.customprintservice.model.dto.SendCustomPrintOfferDto;
+import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintFulfillmentStatusDto;
 import com.aleksandar.customprintservice.model.entity.CustomPrintRequest;
 import com.aleksandar.customprintservice.model.enums.CustomPrintRequestStatus;
 import com.aleksandar.customprintservice.repository.CustomPrintRequestRepository;
@@ -177,10 +178,33 @@ public class CustomPrintRequestService {
     }
 
     @Transactional
+    public CustomPrintRequestDetailsDto updateFulfillmentStatus(UUID requestId, UpdateCustomPrintFulfillmentStatusDto statusDto) {
+        CustomPrintRequest request = findRequestById(requestId);
+        CustomPrintRequestStatus nextStatus = statusDto.status();
+
+        if (request.getStatus() == CustomPrintRequestStatus.ACCEPTED && nextStatus == CustomPrintRequestStatus.PRINTING) {
+            request.setStatus(CustomPrintRequestStatus.PRINTING);
+            request.setPrintingStartedOn(LocalDateTime.now());
+        } else if (request.getStatus() == CustomPrintRequestStatus.PRINTING && nextStatus == CustomPrintRequestStatus.READY_FOR_DELIVERY) {
+            request.setStatus(CustomPrintRequestStatus.READY_FOR_DELIVERY);
+            request.setReadyForDeliveryOn(LocalDateTime.now());
+        } else if (request.getStatus() == CustomPrintRequestStatus.READY_FOR_DELIVERY && nextStatus == CustomPrintRequestStatus.DELIVERED) {
+            request.setStatus(CustomPrintRequestStatus.DELIVERED);
+            request.setDeliveredOn(LocalDateTime.now());
+        } else {
+            throw new CustomPrintRequestOperationNotAllowedException("Custom print fulfillment status can only move to the next production step.");
+        }
+
+        log.info("Updated custom print fulfillment status to {}", request.getStatus());
+
+        return customPrintRequestMapper.toDetailsDto(request);
+    }
+
+    @Transactional
     public CustomPrintRequestDetailsDto hideCustomerRequest(UUID requestId, UUID customerId) {
         CustomPrintRequest request = findCustomerRequestById(requestId, customerId);
 
-        requireCancelledOrRejected(request);
+        requireRemovableFromList(request);
 
         request.setHiddenFromCustomer(true);
         request.setHiddenFromCustomerOn(LocalDateTime.now());
@@ -194,7 +218,7 @@ public class CustomPrintRequestService {
     public CustomPrintRequestDetailsDto archiveRequest(UUID requestId) {
         CustomPrintRequest request = findRequestById(requestId);
 
-        requireCancelledOrRejected(request);
+        requireRemovableFromList(request);
 
         request.setHiddenFromAdmin(true);
         request.setHiddenFromAdminOn(LocalDateTime.now());
@@ -214,10 +238,11 @@ public class CustomPrintRequestService {
                 .orElseThrow(() -> new CustomPrintRequestNotFoundException(REQUEST_NOT_FOUND_MESSAGE));
     }
 
-    private void requireCancelledOrRejected(CustomPrintRequest request) {
+    private void requireRemovableFromList(CustomPrintRequest request) {
         if (request.getStatus() != CustomPrintRequestStatus.CANCELLED
-                && request.getStatus() != CustomPrintRequestStatus.REJECTED) {
-            throw new CustomPrintRequestOperationNotAllowedException("Only cancelled or rejected custom print requests can be removed from lists.");
+                && request.getStatus() != CustomPrintRequestStatus.REJECTED
+                && request.getStatus() != CustomPrintRequestStatus.DELIVERED) {
+            throw new CustomPrintRequestOperationNotAllowedException("Only cancelled, rejected, or delivered custom print requests can be removed from lists.");
         }
     }
 

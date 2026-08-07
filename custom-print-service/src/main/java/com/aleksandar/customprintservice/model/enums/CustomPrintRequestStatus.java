@@ -5,6 +5,9 @@ public enum CustomPrintRequestStatus {
     OFFER_SENT("Offer sent"),
     CHANGES_REQUESTED("Changes requested"),
     ACCEPTED("Accepted"),
+    PRINTING("Printing"),
+    READY_FOR_DELIVERY("Ready for delivery"),
+    DELIVERED("Delivered"),
     REJECTED("Rejected"),
     CANCELLED("Cancelled");
 

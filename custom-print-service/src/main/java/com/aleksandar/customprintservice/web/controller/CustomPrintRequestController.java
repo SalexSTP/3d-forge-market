@@ -6,6 +6,7 @@ import com.aleksandar.customprintservice.model.dto.CustomPrintRequestListItemDto
 import com.aleksandar.customprintservice.model.dto.RejectCustomPrintRequestDto;
 import com.aleksandar.customprintservice.model.dto.RequestCustomPrintChangesDto;
 import com.aleksandar.customprintservice.model.dto.SendCustomPrintOfferDto;
+import com.aleksandar.customprintservice.model.dto.UpdateCustomPrintFulfillmentStatusDto;
 import com.aleksandar.customprintservice.model.enums.CustomPrintRequestStatus;
 import com.aleksandar.customprintservice.service.CustomPrintRequestService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,7 +59,7 @@ public class CustomPrintRequestController {
             @PathVariable UUID customerId,
             @Parameter(description = "Searches title, material, color description, and description.")
             @RequestParam(required = false) String keyword,
-            @Parameter(description = "Filter by request status, including CHANGES_REQUESTED.")
+            @Parameter(description = "Filter by request status, including CHANGES_REQUESTED, PRINTING, READY_FOR_DELIVERY, and DELIVERED.")
             @RequestParam(required = false) CustomPrintRequestStatus status,
             @Parameter(description = "Created-on lower bound in ISO date-time format.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
@@ -86,7 +87,7 @@ public class CustomPrintRequestController {
     public ResponseEntity<List<CustomPrintRequestListItemDto>> getAllRequests(
             @Parameter(description = "Searches title, material, color description, description, customer username, and customer email.")
             @RequestParam(required = false) String keyword,
-            @Parameter(description = "Filter by request status, including CHANGES_REQUESTED.")
+            @Parameter(description = "Filter by request status, including CHANGES_REQUESTED, PRINTING, READY_FOR_DELIVERY, and DELIVERED.")
             @RequestParam(required = false) CustomPrintRequestStatus status,
             @Parameter(description = "Created-on lower bound in ISO date-time format.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
@@ -166,8 +167,20 @@ public class CustomPrintRequestController {
         return ResponseEntity.ok(customPrintRequestService.cancelCustomerRequest(requestId, customerId));
     }
 
+    @PutMapping("/{requestId}/fulfillment-status")
+    @Operation(summary = "Update fulfillment status", description = "Progresses an accepted custom print request through PRINTING, READY_FOR_DELIVERY, and DELIVERED.")
+    @ApiResponse(responseCode = "200", description = "Custom print fulfillment status updated.")
+    @ApiResponse(responseCode = "400", description = "Validation failed or operation is not allowed.")
+    @ApiResponse(responseCode = "404", description = "Custom print request was not found.")
+    public ResponseEntity<CustomPrintRequestDetailsDto> updateFulfillmentStatus(
+            @PathVariable UUID requestId,
+            @Valid @RequestBody UpdateCustomPrintFulfillmentStatusDto statusDto) {
+
+        return ResponseEntity.ok(customPrintRequestService.updateFulfillmentStatus(requestId, statusDto));
+    }
+
     @PutMapping("/customer/{customerId}/{requestId}/hide")
-    @Operation(summary = "Hide customer request", description = "Soft-removes a cancelled or rejected request from the customer's list.")
+    @Operation(summary = "Hide customer request", description = "Soft-removes a cancelled, rejected, or delivered request from the customer's list.")
     @ApiResponse(responseCode = "200", description = "Custom print request hidden from customer list.")
     @ApiResponse(responseCode = "400", description = "Invalid path parameter or operation is not allowed.")
     @ApiResponse(responseCode = "404", description = "Custom print request was not found.")
@@ -179,7 +192,7 @@ public class CustomPrintRequestController {
     }
 
     @PutMapping("/{requestId}/archive")
-    @Operation(summary = "Archive custom print request", description = "Soft-removes a cancelled or rejected request from the admin list.")
+    @Operation(summary = "Archive custom print request", description = "Soft-removes a cancelled, rejected, or delivered request from the admin list.")
     @ApiResponse(responseCode = "200", description = "Custom print request archived for admin.")
     @ApiResponse(responseCode = "400", description = "Invalid path parameter or operation is not allowed.")
     @ApiResponse(responseCode = "404", description = "Custom print request was not found.")

@@ -56,6 +56,9 @@ public class CustomPrintRequestMapper {
                 request.getQuotedOn(),
                 request.getCustomerRespondedOn(),
                 request.getAcceptedOn(),
+                request.getPrintingStartedOn(),
+                request.getReadyForDeliveryOn(),
+                request.getDeliveredOn(),
                 request.getCancelledOn()
         );
     }
@@ -87,6 +90,9 @@ public class CustomPrintRequestMapper {
                 request.getQuotedOn(),
                 request.getCustomerRespondedOn(),
                 request.getAcceptedOn(),
+                request.getPrintingStartedOn(),
+                request.getReadyForDeliveryOn(),
+                request.getDeliveredOn(),
                 request.getCancelledOn()
         );
     }

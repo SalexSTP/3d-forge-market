@@ -97,6 +97,12 @@ public class CustomPrintRequest {
 
     private LocalDateTime acceptedOn;
 
+    private LocalDateTime printingStartedOn;
+
+    private LocalDateTime readyForDeliveryOn;
+
+    private LocalDateTime deliveredOn;
+
     private LocalDateTime cancelledOn;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
