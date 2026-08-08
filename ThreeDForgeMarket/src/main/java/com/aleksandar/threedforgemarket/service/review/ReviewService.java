@@ -18,6 +18,8 @@ import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import com.aleksandar.threedforgemarket.repository.review.ReviewRepository;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ import java.util.UUID;
 
 @Service
 public class ReviewService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReviewService.class);
 
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
@@ -129,7 +132,11 @@ public class ReviewService {
                 customer
         );
 
-        reviewRepository.save(review);
+        Review savedReview = reviewRepository.save(review);
+        LOGGER.info("Created review with id={} for product id={} by customer id={}",
+                savedReview.getId(),
+                product.getId(),
+                customer.getId());
     }
 
     @Transactional(readOnly = true)
@@ -155,6 +162,10 @@ public class ReviewService {
         reviewMapper.updateEntity(review, reviewForm);
 
         reviewRepository.save(review);
+        LOGGER.info("Updated review id={} for product id={} by customer id={}",
+                reviewId,
+                review.getProduct().getId(),
+                customerId);
 
         return review.getProduct().getId();
     }
@@ -170,6 +181,7 @@ public class ReviewService {
         UUID productId = review.getProduct().getId();
 
         reviewRepository.delete(review);
+        LOGGER.info("Deleted review id={} for product id={} by customer id={}", reviewId, productId, customerId);
 
         return productId;
     }
@@ -179,7 +191,9 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(ReviewNotFoundException::new);
 
+        UUID productId = review.getProduct().getId();
         reviewRepository.delete(review);
+        LOGGER.info("Deleted review id={} for product id={} by admin", reviewId, productId);
     }
 
     private User findCustomerById(UUID customerId) {

@@ -13,6 +13,8 @@ import com.aleksandar.threedforgemarket.model.user.AdminUserSearchRequest;
 import com.aleksandar.threedforgemarket.model.user.EditProfileRequest;
 import com.aleksandar.threedforgemarket.model.user.ProfileDto;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.util.UUID;
 
 @Service
 public class UserService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -53,7 +57,8 @@ public class UserService {
                 .role(UserRole.CUSTOMER)
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        LOGGER.info("Registered user account id={} with role={}", savedUser.getId(), savedUser.getRole());
     }
 
     public Optional<User> findById(UUID id) {
@@ -122,6 +127,7 @@ public class UserService {
         }
 
         targetUser.setRole(newRole);
+        LOGGER.info("Changed user role to {} for user id={}", newRole, targetUserId);
     }
 
     @Transactional
@@ -148,6 +154,7 @@ public class UserService {
 
         targetUser.setActive(false);
         targetUser.setDeactivatedOn(LocalDateTime.now());
+        LOGGER.info("Deactivated user account id={}", targetUserId);
     }
 
     @Transactional
@@ -162,6 +169,7 @@ public class UserService {
 
         targetUser.setActive(true);
         targetUser.setDeactivatedOn(null);
+        LOGGER.info("Reactivated user account id={}", targetUserId);
     }
 
     public ProfileDto getCurrentUserProfile(UUID userId) {
@@ -204,6 +212,7 @@ public class UserService {
         user.setEmail(normalizedEmail);
 
         User savedUser = userRepository.save(user);
+        LOGGER.info("Updated profile for user id={}", savedUser.getId());
 
         return toProfileDto(savedUser);
     }

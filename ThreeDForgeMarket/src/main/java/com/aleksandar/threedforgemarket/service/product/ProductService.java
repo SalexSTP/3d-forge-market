@@ -13,6 +13,8 @@ import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.util.UUID;
 
 @Service
 public class ProductService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
+
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
@@ -150,7 +154,8 @@ public class ProductService {
 
         Product product = productMapper.toEntity(productForm);
 
-        productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        LOGGER.info("Created product with id={}", savedProduct.getId());
     }
 
     @Transactional
@@ -171,6 +176,7 @@ public class ProductService {
         productMapper.updateEntity(product, productForm);
 
         productRepository.save(product);
+        LOGGER.info("Updated product with id={}", product.getId());
     }
 
     @Transactional
@@ -189,6 +195,7 @@ public class ProductService {
         product.setAvailable(!product.isAvailable());
 
         productRepository.save(product);
+        LOGGER.info("Changed product availability to {} for product id={}", product.isAvailable(), product.getId());
     }
 
     @Transactional
@@ -205,10 +212,12 @@ public class ProductService {
         Product product = findProductById(productId);
 
         if (customerOrderRepository.existsByProduct_Id(productId)) {
+            LOGGER.info("Blocked product deletion because order history exists for product id={}", productId);
             throw new ProductDeletionNotAllowedException();
         }
 
         productRepository.delete(product);
+        LOGGER.info("Deleted product with id={}", productId);
     }
 
     private Product findProductById(UUID productId) {

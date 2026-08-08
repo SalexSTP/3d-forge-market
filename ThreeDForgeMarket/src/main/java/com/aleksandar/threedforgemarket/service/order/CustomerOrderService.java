@@ -1,7 +1,12 @@
 package com.aleksandar.threedforgemarket.service.order;
 
 import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
-import com.aleksandar.threedforgemarket.exception.order.*;
+import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
+import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderStatusUpdateNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.order.CustomerOrderMapper;
 import com.aleksandar.threedforgemarket.model.dto.order.AdminOrderListItemDto;
@@ -15,6 +20,8 @@ import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +31,8 @@ import java.util.UUID;
 
 @Service
 public class CustomerOrderService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerOrderService.class);
+
     private final CustomerOrderRepository customerOrderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -70,7 +79,11 @@ public class CustomerOrderService {
                 totalPrice
         );
 
-        customerOrderRepository.save(customerOrder);
+        CustomerOrder savedOrder = customerOrderRepository.save(customerOrder);
+        LOGGER.info("Created order with id={} for customer id={} and product id={}",
+                savedOrder.getId(),
+                customer.getId(),
+                product.getId());
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +112,7 @@ public class CustomerOrderService {
         customerOrder.setStatus(OrderStatus.CANCELLED);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Cancelled order id={} for customer id={}", orderId, customerId);
     }
 
     @Transactional
@@ -114,6 +128,7 @@ public class CustomerOrderService {
         customerOrder.setDeletedFromCustomerHistory(true);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Removed order id={} from customer history for customer id={}", orderId, customerId);
     }
 
     @Transactional(readOnly = true)
@@ -144,6 +159,7 @@ public class CustomerOrderService {
         customerOrder.setStatus(requestedStatus);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Updated order status to {} for order id={}", requestedStatus, orderId);
     }
 
     @Transactional
@@ -158,6 +174,7 @@ public class CustomerOrderService {
         customerOrder.setDeletedFromAdminHistory(true);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Removed order id={} from admin history", orderId);
     }
 
     private boolean isCancellable(OrderStatus status) {

@@ -38,7 +38,10 @@ public class CustomPrintRequestService {
         CustomPrintRequest request = customPrintRequestMapper.toEntity(requestDto);
         CustomPrintRequest savedRequest = customPrintRequestRepository.save(request);
 
-        log.info("Created custom print request with status {}", savedRequest.getStatus());
+        log.info("Created custom print request id={} for customer id={} with status={}",
+                savedRequest.getId(),
+                savedRequest.getCustomerId(),
+                savedRequest.getStatus());
 
         return customPrintRequestMapper.toDetailsDto(savedRequest);
     }
@@ -93,7 +96,7 @@ public class CustomPrintRequestService {
 
         customPrintRequestMapper.updateEntity(request, requestDto);
 
-        log.info("Updated pending custom print request");
+        log.info("Updated custom print request id={} for customer id={}", requestId, customerId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -115,7 +118,7 @@ public class CustomPrintRequestService {
         request.setQuotedOn(LocalDateTime.now());
         clearAdminAttention(request);
 
-        log.info("Sent custom print request offer");
+        log.info("Sent custom print offer for request id={}", requestId);
 
         CustomPrintRequest savedRequest = customPrintRequestRepository.saveAndFlush(request);
 
@@ -137,7 +140,7 @@ public class CustomPrintRequestService {
         request.setAdminMessage(rejectDto.adminMessage());
         clearAdminAttention(request);
 
-        log.info("Rejected custom print request");
+        log.info("Rejected custom print request id={}", requestId);
 
         CustomPrintRequest savedRequest = customPrintRequestRepository.saveAndFlush(request);
 
@@ -156,7 +159,7 @@ public class CustomPrintRequestService {
         request.setAcceptedOn(LocalDateTime.now());
         clearCustomerResponseReminder(request);
 
-        log.info("Accepted custom print request offer");
+        log.info("Accepted custom print offer for request id={} by customer id={}", requestId, customerId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -174,7 +177,7 @@ public class CustomPrintRequestService {
         request.setCustomerRespondedOn(LocalDateTime.now());
         clearCustomerResponseReminder(request);
 
-        log.info("Requested changes for custom print request");
+        log.info("Requested changes for custom print request id={} by customer id={}", requestId, customerId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -194,7 +197,7 @@ public class CustomPrintRequestService {
         clearAdminAttention(request);
         clearCustomerResponseReminder(request);
 
-        log.info("Cancelled custom print request");
+        log.info("Cancelled custom print request id={} by customer id={}", requestId, customerId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -217,7 +220,7 @@ public class CustomPrintRequestService {
             throw new CustomPrintRequestOperationNotAllowedException("Custom print fulfillment status can only move to the next production step.");
         }
 
-        log.info("Updated custom print fulfillment status to {}", request.getStatus());
+        log.info("Updated custom print fulfillment status to {} for request id={}", request.getStatus(), requestId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -231,7 +234,7 @@ public class CustomPrintRequestService {
         request.setHiddenFromCustomer(true);
         request.setHiddenFromCustomerOn(LocalDateTime.now());
 
-        log.info("Customer hid custom print request");
+        log.info("Customer hid custom print request id={} for customer id={}", requestId, customerId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
@@ -245,7 +248,7 @@ public class CustomPrintRequestService {
         request.setHiddenFromAdmin(true);
         request.setHiddenFromAdminOn(LocalDateTime.now());
 
-        log.info("Archived custom print request");
+        log.info("Archived custom print request id={}", requestId);
 
         return customPrintRequestMapper.toDetailsDto(request);
     }
