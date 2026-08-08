@@ -1,5 +1,6 @@
 package com.aleksandar.threedforgemarket.service.product;
 
+import com.aleksandar.threedforgemarket.config.CacheConfiguration;
 import com.aleksandar.threedforgemarket.exception.product.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
@@ -12,6 +13,8 @@ import com.aleksandar.threedforgemarket.model.enums.product.PrintMaterial;
 import com.aleksandar.threedforgemarket.model.enums.product.ProductCategory;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -33,6 +36,10 @@ public class ProductService {
         this.customerOrderRepository = customerOrderRepository;
     }
 
+    @Cacheable(
+            cacheNames = CacheConfiguration.PRODUCT_CATALOG,
+            key = "{T(org.springframework.util.StringUtils).hasText(#search) ? #search.trim() : null, #productCategory}"
+    )
     public List<ProductCatalogItemDto> getAvailableProducts(
             String search,
             ProductCategory productCategory
@@ -71,6 +78,7 @@ public class ProductService {
                 .toList();
     }
 
+    @Cacheable(cacheNames = CacheConfiguration.PRODUCT_DETAILS, key = "#productId")
     public ProductDetailsDto getAvailableProductDetails(UUID productId) {
         Product product = productRepository.findByIdAndAvailableTrue(productId)
                 .orElseThrow(ProductNotFoundException::new);
@@ -84,6 +92,7 @@ public class ProductService {
         return productMapper.toDetailsDto(product);
     }
 
+    @Cacheable(cacheNames = CacheConfiguration.FEATURED_PRODUCTS)
     public List<ProductCatalogItemDto> getFeaturedProducts() {
         return productRepository.findTop3ByAvailableTrueOrderByCreatedOnDesc()
                 .stream()
@@ -91,6 +100,10 @@ public class ProductService {
                 .toList();
     }
 
+    @Cacheable(
+            cacheNames = CacheConfiguration.ADMIN_PRODUCTS,
+            key = "{T(org.springframework.util.StringUtils).hasText(#search) ? #search.trim() : null, #category, #material, #minPrice, #maxPrice, #available}"
+    )
     public List<ProductCatalogItemDto> getAllProductsForAdmin(
             String search,
             ProductCategory category,
@@ -123,6 +136,15 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(
+            cacheNames = {
+                    CacheConfiguration.FEATURED_PRODUCTS,
+                    CacheConfiguration.PRODUCT_CATALOG,
+                    CacheConfiguration.PRODUCT_DETAILS,
+                    CacheConfiguration.ADMIN_PRODUCTS
+            },
+            allEntries = true
+    )
     public void createProduct(ProductFormDto productForm) {
         validateProductName(productForm.getName(), null);
 
@@ -132,6 +154,15 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(
+            cacheNames = {
+                    CacheConfiguration.FEATURED_PRODUCTS,
+                    CacheConfiguration.PRODUCT_CATALOG,
+                    CacheConfiguration.PRODUCT_DETAILS,
+                    CacheConfiguration.ADMIN_PRODUCTS
+            },
+            allEntries = true
+    )
     public void updateProduct(UUID productId, ProductFormDto productForm) {
         Product product = findProductById(productId);
 
@@ -143,6 +174,15 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(
+            cacheNames = {
+                    CacheConfiguration.FEATURED_PRODUCTS,
+                    CacheConfiguration.PRODUCT_CATALOG,
+                    CacheConfiguration.PRODUCT_DETAILS,
+                    CacheConfiguration.ADMIN_PRODUCTS
+            },
+            allEntries = true
+    )
     public void toggleProductAvailability(UUID productId) {
         Product product = findProductById(productId);
 
@@ -152,6 +192,15 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(
+            cacheNames = {
+                    CacheConfiguration.FEATURED_PRODUCTS,
+                    CacheConfiguration.PRODUCT_CATALOG,
+                    CacheConfiguration.PRODUCT_DETAILS,
+                    CacheConfiguration.ADMIN_PRODUCTS
+            },
+            allEntries = true
+    )
     public void deleteProduct(UUID productId) {
         Product product = findProductById(productId);
 
