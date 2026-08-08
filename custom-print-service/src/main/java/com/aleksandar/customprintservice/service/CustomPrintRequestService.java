@@ -113,6 +113,7 @@ public class CustomPrintRequestService {
         request.setAdminMessage(offerDto.adminMessage());
         request.setResponseFileUrl(offerDto.responseFileUrl());
         request.setQuotedOn(LocalDateTime.now());
+        clearAdminAttention(request);
 
         log.info("Sent custom print request offer");
 
@@ -134,6 +135,7 @@ public class CustomPrintRequestService {
         request.setQuotedPrice(null);
         request.setEstimatedPrintTimeMinutes(null);
         request.setAdminMessage(rejectDto.adminMessage());
+        clearAdminAttention(request);
 
         log.info("Rejected custom print request");
 
@@ -152,6 +154,7 @@ public class CustomPrintRequestService {
 
         request.setStatus(CustomPrintRequestStatus.ACCEPTED);
         request.setAcceptedOn(LocalDateTime.now());
+        clearCustomerResponseReminder(request);
 
         log.info("Accepted custom print request offer");
 
@@ -169,6 +172,7 @@ public class CustomPrintRequestService {
         request.setStatus(CustomPrintRequestStatus.CHANGES_REQUESTED);
         request.setCustomerMessage(changesDto.customerMessage());
         request.setCustomerRespondedOn(LocalDateTime.now());
+        clearCustomerResponseReminder(request);
 
         log.info("Requested changes for custom print request");
 
@@ -187,6 +191,8 @@ public class CustomPrintRequestService {
 
         request.setStatus(CustomPrintRequestStatus.CANCELLED);
         request.setCancelledOn(LocalDateTime.now());
+        clearAdminAttention(request);
+        clearCustomerResponseReminder(request);
 
         log.info("Cancelled custom print request");
 
@@ -260,6 +266,16 @@ public class CustomPrintRequestService {
                 && request.getStatus() != CustomPrintRequestStatus.DELIVERED) {
             throw new CustomPrintRequestOperationNotAllowedException("Only cancelled, rejected, or delivered custom print requests can be removed from lists.");
         }
+    }
+
+    private void clearAdminAttention(CustomPrintRequest request) {
+        request.setAdminAttentionRequired(false);
+        request.setAdminAttentionMarkedOn(null);
+    }
+
+    private void clearCustomerResponseReminder(CustomPrintRequest request) {
+        request.setCustomerResponseReminderRequired(false);
+        request.setCustomerResponseReminderMarkedOn(null);
     }
 
     private String normalizeKeyword(String keyword) {

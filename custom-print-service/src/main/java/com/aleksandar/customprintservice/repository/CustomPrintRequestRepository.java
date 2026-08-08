@@ -62,4 +62,37 @@ public interface CustomPrintRequestRepository extends JpaRepository<CustomPrintR
             @Param("status") CustomPrintRequestStatus status,
             @Param("createdFrom") LocalDateTime createdFrom,
             @Param("createdTo") LocalDateTime createdTo);
+
+    @Query("""
+            select r
+            from CustomPrintRequest r
+            where r.status in :statuses
+              and r.updatedOn <= :staleBefore
+              and r.adminAttentionRequired = false
+            """)
+    List<CustomPrintRequest> findRequestsWaitingForAdminAttention(
+            @Param("statuses") List<CustomPrintRequestStatus> statuses,
+            @Param("staleBefore") LocalDateTime staleBefore);
+
+    @Query("""
+            select r
+            from CustomPrintRequest r
+            where r.status = :status
+              and r.quotedOn <= :staleBefore
+              and r.customerResponseReminderRequired = false
+            """)
+    List<CustomPrintRequest> findOffersWaitingForCustomerResponse(
+            @Param("status") CustomPrintRequestStatus status,
+            @Param("staleBefore") LocalDateTime staleBefore);
+
+    @Query("""
+            select r
+            from CustomPrintRequest r
+            where r.status in :statuses
+              and r.updatedOn <= :staleBefore
+              and r.hiddenFromAdmin = false
+            """)
+    List<CustomPrintRequest> findOldFinishedRequestsVisibleToAdmin(
+            @Param("statuses") List<CustomPrintRequestStatus> statuses,
+            @Param("staleBefore") LocalDateTime staleBefore);
 }

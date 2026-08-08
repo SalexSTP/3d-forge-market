@@ -35,6 +35,11 @@ public record CustomPrintRequestDetailsDto(
         LocalDateTime printingStartedOn,
         LocalDateTime readyForDeliveryOn,
         LocalDateTime deliveredOn,
-        LocalDateTime cancelledOn
+        LocalDateTime cancelledOn,
+        boolean adminAttentionRequired,
+        LocalDateTime adminAttentionMarkedOn,
+        boolean customerResponseReminderRequired,
+        LocalDateTime customerResponseReminderMarkedOn,
+        LocalDateTime autoArchivedOn
 ) {
 }

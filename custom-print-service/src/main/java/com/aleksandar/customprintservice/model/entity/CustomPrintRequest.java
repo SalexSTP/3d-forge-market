@@ -115,6 +115,18 @@ public class CustomPrintRequest {
 
     private LocalDateTime hiddenFromAdminOn;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean adminAttentionRequired = false;
+
+    private LocalDateTime adminAttentionMarkedOn;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean customerResponseReminderRequired = false;
+
+    private LocalDateTime customerResponseReminderMarkedOn;
+
+    private LocalDateTime autoArchivedOn;
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();

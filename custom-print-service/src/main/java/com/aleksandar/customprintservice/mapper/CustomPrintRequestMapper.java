@@ -73,7 +73,11 @@ public class CustomPrintRequestMapper {
                 request.getPrintingStartedOn(),
                 request.getReadyForDeliveryOn(),
                 request.getDeliveredOn(),
-                request.getCancelledOn()
+                request.getCancelledOn(),
+                request.isAdminAttentionRequired(),
+                request.getAdminAttentionMarkedOn(),
+                request.isCustomerResponseReminderRequired(),
+                request.getCustomerResponseReminderMarkedOn()
         );
     }
 
@@ -107,7 +111,12 @@ public class CustomPrintRequestMapper {
                 request.getPrintingStartedOn(),
                 request.getReadyForDeliveryOn(),
                 request.getDeliveredOn(),
-                request.getCancelledOn()
+                request.getCancelledOn(),
+                request.isAdminAttentionRequired(),
+                request.getAdminAttentionMarkedOn(),
+                request.isCustomerResponseReminderRequired(),
+                request.getCustomerResponseReminderMarkedOn(),
+                request.getAutoArchivedOn()
         );
     }
 }
