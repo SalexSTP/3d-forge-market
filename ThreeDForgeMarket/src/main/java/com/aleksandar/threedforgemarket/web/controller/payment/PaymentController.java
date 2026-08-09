@@ -140,14 +140,14 @@ public class PaymentController {
             if (successResult.targetType() == PaymentTargetType.PRODUCT_ORDER) {
                 redirectAttributes.addFlashAttribute(
                         "successMessage",
-                        "Payment completed. If the status is still pending, it will update after Stripe confirmation."
+                        "Payment completed. Your order is now waiting for admin review."
                 );
                 return new ModelAndView("redirect:/orders");
             }
 
             redirectAttributes.addFlashAttribute(
                     "successMessage",
-                    "Payment completed. If the offer is still waiting, it will update after Stripe confirmation."
+                    "Payment completed. Your custom print offer will be accepted after Stripe confirms the payment."
             );
             return new ModelAndView("redirect:/custom-prints/" + successResult.targetId());
 

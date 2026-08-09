@@ -43,6 +43,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -385,7 +386,11 @@ class CustomPrintMvcTest {
                         .with(customer(customer.getId()))
                         .param("session_id", "cs_test_custom_success"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/custom-prints/" + requestId));
+                .andExpect(redirectedUrl("/custom-prints/" + requestId))
+                .andExpect(flash().attribute(
+                        "successMessage",
+                        "Payment completed. Your custom print offer will be accepted after Stripe confirms the payment."
+                ));
 
         PaymentTransaction unchangedPayment = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
         assertThat(unchangedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);

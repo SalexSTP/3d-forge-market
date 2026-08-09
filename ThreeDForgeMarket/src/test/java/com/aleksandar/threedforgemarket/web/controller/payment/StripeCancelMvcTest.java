@@ -154,7 +154,7 @@ class StripeCancelMvcTest {
                 .andExpect(redirectedUrl("/orders"))
                 .andExpect(flash().attribute(
                         "successMessage",
-                        "Payment completed. If the status is still pending, it will update after Stripe confirmation."
+                        "Payment completed. Your order is now waiting for admin review."
                 ));
 
         PaymentTransaction unchangedPayment = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
