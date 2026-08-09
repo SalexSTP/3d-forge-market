@@ -1177,6 +1177,25 @@ textarea:focus {
     min-width: 82px;
 }
 
+.table-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.invoice-action-btn {
+    border-color: rgba(15, 118, 110, 0.24);
+    background: #e8f7f5;
+    color: var(--color-primary-dark);
+    box-shadow: none;
+}
+
+.invoice-action-btn:hover {
+    background: #dff5f1;
+    color: var(--color-primary-dark);
+}
+
 .modal-dialog {
     width: min(560px, calc(100% - 32px));
     padding: 0;

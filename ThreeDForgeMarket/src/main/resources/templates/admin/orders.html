@@ -174,7 +174,13 @@
                             </button>
                         </form>
 
-                        <span th:if="${#lists.isEmpty(order.availableStatusUpdates) and !order.deletable}"
+                        <a th:if="${order.paymentSummary != null and order.paymentSummary.invoiceAvailable}"
+                           class="btn btn-small btn-ghost table-action-btn invoice-action-btn"
+                           th:href="@{/admin/payments/{id}/invoice(id=${order.paymentSummary.paymentTransactionId})}">
+                            Invoice
+                        </a>
+
+                        <span th:if="${#lists.isEmpty(order.availableStatusUpdates) and !order.deletable and (order.paymentSummary == null or !order.paymentSummary.invoiceAvailable)}"
                               class="muted-action">
                             No actions
                         </span>

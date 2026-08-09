@@ -42,6 +42,7 @@ public class PaymentService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final CustomerOrderRepository customerOrderRepository;
     private final StripeCheckoutClient stripeCheckoutClient;
+    private final StripeInvoiceClient stripeInvoiceClient;
     private final StripeProperties stripeProperties;
     private final PaymentProperties paymentProperties;
     private final CustomPrintRequestService customPrintRequestService;
@@ -51,6 +52,7 @@ public class PaymentService {
             PaymentTransactionRepository paymentTransactionRepository,
             CustomerOrderRepository customerOrderRepository,
             StripeCheckoutClient stripeCheckoutClient,
+            StripeInvoiceClient stripeInvoiceClient,
             StripeProperties stripeProperties,
             PaymentProperties paymentProperties,
             CustomPrintRequestService customPrintRequestService,
@@ -59,6 +61,7 @@ public class PaymentService {
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.customerOrderRepository = customerOrderRepository;
         this.stripeCheckoutClient = stripeCheckoutClient;
+        this.stripeInvoiceClient = stripeInvoiceClient;
         this.stripeProperties = stripeProperties;
         this.paymentProperties = paymentProperties;
         this.customPrintRequestService = customPrintRequestService;
@@ -164,12 +167,17 @@ public class PaymentService {
         PaymentTransaction transaction = findWebhookTransaction(session);
 
         if (transaction.getPaymentStatus() == PaymentStatus.PAID) {
+            if (transaction.getStripeInvoicePdfUrl() == null || transaction.getStripeInvoicePdfUrl().isBlank()) {
+                storeStripeInvoiceData(transaction, session.invoiceId());
+                paymentTransactionRepository.save(transaction);
+            }
             return;
         }
 
         transaction.setPaymentStatus(PaymentStatus.PAID);
         transaction.setStripePaymentIntentId(session.paymentIntentId());
         transaction.setPaidOn(LocalDateTime.now());
+        storeStripeInvoiceData(transaction, session.invoiceId());
         paymentTransactionRepository.save(transaction);
         LOGGER.info("Stripe payment confirmed by webhook for transaction id={}", transaction.getId());
 
@@ -242,13 +250,90 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public Optional<PaymentSummaryDto> getLatestPaymentSummary(PaymentTargetType targetType, UUID targetId) {
+        return getLatestPaymentSummary(
+                targetType,
+                targetId,
+                isTargetCancelledBeforePayment(targetType, targetId)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<PaymentSummaryDto> getLatestPaymentSummary(
+            PaymentTargetType targetType,
+            UUID targetId,
+            boolean targetCancelledBeforePayment
+    ) {
         return paymentTransactionRepository.findFirstByTargetTypeAndTargetIdOrderByCreatedOnDesc(targetType, targetId)
                 .map(transaction -> PaymentSummaryDto.builder()
                         .paymentMethod(transaction.getPaymentMethod())
                         .paymentStatus(transaction.getPaymentStatus())
                         .amount(transaction.getAmount())
                         .currency(transaction.getCurrency())
+                        .paymentTransactionId(transaction.getId())
+                        .invoiceAvailable(isInvoiceAvailable(transaction, targetCancelledBeforePayment))
+                        .stripeInvoice(transaction.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT)
                         .build());
+    }
+
+    private void storeStripeInvoiceData(PaymentTransaction transaction, String stripeInvoiceId) {
+        if (stripeInvoiceId == null || stripeInvoiceId.isBlank()) {
+            return;
+        }
+
+        transaction.setStripeInvoiceId(stripeInvoiceId);
+
+        try {
+            stripeInvoiceClient.getInvoicePdfUrl(stripeInvoiceId)
+                    .ifPresentOrElse(invoicePdfUrl -> {
+                        transaction.setStripeInvoicePdfUrl(invoicePdfUrl);
+                        transaction.setInvoiceGeneratedOn(LocalDateTime.now());
+                    }, () -> LOGGER.warn(
+                            "Stripe invoice PDF URL is not available yet for transaction id={} invoice id={}",
+                            transaction.getId(),
+                            stripeInvoiceId
+                    ));
+        } catch (StripeException exception) {
+            LOGGER.warn(
+                    "Could not retrieve Stripe invoice PDF URL for transaction id={} invoice id={}",
+                    transaction.getId(),
+                    stripeInvoiceId
+            );
+        }
+    }
+
+    private boolean isInvoiceAvailable(PaymentTransaction transaction, boolean targetCancelledBeforePayment) {
+        if (transaction.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT) {
+            return transaction.getPaymentStatus() == PaymentStatus.PAID
+                    && transaction.getStripeInvoicePdfUrl() != null
+                    && !transaction.getStripeInvoicePdfUrl().isBlank();
+        }
+
+        if (transaction.getPaymentMethod() != PaymentMethod.CASH_ON_DELIVERY) {
+            return false;
+        }
+
+        if (transaction.getPaymentStatus() == PaymentStatus.PAID) {
+            return true;
+        }
+
+        return transaction.getPaymentStatus() == PaymentStatus.PENDING_CASH_ON_DELIVERY
+                && !targetCancelledBeforePayment;
+    }
+
+    private boolean isTargetCancelledBeforePayment(PaymentTargetType targetType, UUID targetId) {
+        if (targetType == PaymentTargetType.PRODUCT_ORDER) {
+            return customerOrderRepository.findById(targetId)
+                    .map(order -> order.getStatus() == OrderStatus.CANCELLED)
+                    .orElse(false);
+        }
+
+        try {
+            CustomPrintRequestDetailsClientDto request = customPrintRequestService.getRequestDetailsForAdmin(targetId);
+            return request.status() == CustomPrintRequestStatus.CANCELLED
+                    || request.status() == CustomPrintRequestStatus.REJECTED;
+        } catch (RuntimeException exception) {
+            return false;
+        }
     }
 
     private PaymentTransaction createTransaction(

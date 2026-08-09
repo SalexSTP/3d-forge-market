@@ -76,6 +76,12 @@ public class PaymentTransaction {
     @Column(length = 255)
     private String stripePaymentIntentId;
 
+    @Column(length = 255)
+    private String stripeInvoiceId;
+
+    @Column(length = 1000)
+    private String stripeInvoicePdfUrl;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdOn;
 
@@ -85,6 +91,8 @@ public class PaymentTransaction {
     private LocalDateTime paidOn;
 
     private LocalDateTime cancelledOn;
+
+    private LocalDateTime invoiceGeneratedOn;
 
     @PrePersist
     private void onCreate() {

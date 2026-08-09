@@ -138,6 +138,12 @@
                     Edit request
                 </a>
 
+                <a th:if="${paymentSummary != null and paymentSummary.invoiceAvailable}"
+                   class="btn btn-ghost table-action-btn invoice-action-btn"
+                   th:href="@{/payments/{id}/invoice(id=${paymentSummary.paymentTransactionId})}">
+                    Invoice
+                </a>
+
                 <form th:if="${request.cancellable}"
                       th:action="@{/custom-prints/{id}/cancel(id=${request.id})}"
                       method="post"

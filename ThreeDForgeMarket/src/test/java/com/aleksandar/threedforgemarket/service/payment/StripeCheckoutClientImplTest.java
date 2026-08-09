@@ -26,6 +26,11 @@ class StripeCheckoutClientImplTest {
                 .containsExactly(SessionCreateParams.PaymentMethodType.CARD);
         assertThat(params.getBrandingSettings().getDisplayName()).isEqualTo("3DForgeMarket");
         assertThat(params.getMetadata()).containsEntry("targetType", PaymentTargetType.PRODUCT_ORDER.name());
+        assertThat(params.getInvoiceCreation().getEnabled()).isTrue();
+        assertThat(params.getInvoiceCreation().getInvoiceData().getDescription()).isEqualTo("Modern Simple Hook");
+        assertThat(params.getInvoiceCreation().getInvoiceData().getMetadata())
+                .containsEntry("targetType", PaymentTargetType.PRODUCT_ORDER.name())
+                .containsKeys("paymentTransactionId", "targetId");
 
         SessionCreateParams.LineItem lineItem = params.getLineItems().get(0);
         assertThat(lineItem.getPriceData().getCurrency()).isEqualTo("eur");

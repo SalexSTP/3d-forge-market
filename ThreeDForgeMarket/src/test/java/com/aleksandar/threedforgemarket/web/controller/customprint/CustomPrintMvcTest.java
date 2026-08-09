@@ -2,6 +2,7 @@ package com.aleksandar.threedforgemarket.web.controller.customprint;
 
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestListItemClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.entity.PaymentTransaction;
@@ -241,6 +242,86 @@ class CustomPrintMvcTest {
     }
 
     @Test
+    void adminCustomPrintListShowsInvoiceActionWhenAvailable() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+        when(customPrintRequestService.getAllRequestsForAdmin(any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.ACCEPTED)));
+
+        mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Invoice")))
+                .andExpect(content().string(not(containsString("Download invoice"))))
+                .andExpect(content().string(containsString("/admin/payments/" + paymentTransaction.getId() + "/invoice")));
+    }
+
+    @Test
+    void adminCustomPrintListHidesInvoiceActionForCancelledPendingCashRequest() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+        when(customPrintRequestService.getAllRequestsForAdmin(any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.CANCELLED)));
+
+        mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("/admin/payments/" + paymentTransaction.getId() + "/invoice"))));
+    }
+
+    @Test
+    void adminCustomPrintDetailsDoesNotShowStandaloneInvoiceAction() throws Exception {
+        paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+        when(customPrintRequestService.getRequestDetailsForAdmin(requestId))
+                .thenReturn(details(CustomPrintRequestStatus.ACCEPTED));
+
+        mockMvc.perform(get("/admin/custom-prints/{id}", requestId).with(admin(admin.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("/admin/payments/"))));
+    }
+
+    @Test
+    void customerCustomPrintDetailsUsesCompactInvoiceLabel() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+        when(customPrintRequestService.getCustomerRequestDetails(customer.getId(), requestId))
+                .thenReturn(details(CustomPrintRequestStatus.ACCEPTED));
+
+        mockMvc.perform(get("/custom-prints/{id}", requestId).with(customer(customer.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Invoice")))
+                .andExpect(content().string(not(containsString("Download invoice"))))
+                .andExpect(content().string(containsString("/payments/" + paymentTransaction.getId() + "/invoice")));
+    }
+
+    @Test
     void adminCanOpenDetailsAndRunCustomPrintActionsWithCsrf() throws Exception {
         when(customPrintRequestService.getRequestDetailsForAdmin(requestId))
                 .thenReturn(details(CustomPrintRequestStatus.ACCEPTED));
@@ -438,6 +519,41 @@ class CustomPrintMvcTest {
 
     private CustomPrintRequestDetailsClientDto details(CustomPrintRequestStatus status) {
         return CustomPrintClientTestData.details(requestId, customer.getId(), status);
+    }
+
+    private CustomPrintRequestListItemClientDto listItem(CustomPrintRequestStatus status) {
+        CustomPrintRequestDetailsClientDto details = details(status);
+
+        return new CustomPrintRequestListItemClientDto(
+                details.id(),
+                details.customerId(),
+                details.customerUsername(),
+                details.customerEmail(),
+                details.title(),
+                details.material(),
+                details.colorDescription(),
+                details.widthCm(),
+                details.heightCm(),
+                details.depthCm(),
+                details.quantity(),
+                details.referenceFileUrl(),
+                details.deliveryAddress(),
+                details.status(),
+                details.quotedPrice(),
+                details.estimatedPrintTimeMinutes(),
+                details.adminMessage(),
+                details.responseFileUrl(),
+                details.customerMessage(),
+                details.createdOn(),
+                details.updatedOn(),
+                details.quotedOn(),
+                details.cancelledOn(),
+                details.customerRespondedOn(),
+                details.acceptedOn(),
+                details.printingStartedOn(),
+                details.readyForDeliveryOn(),
+                details.deliveredOn()
+        );
     }
 
     private org.springframework.util.MultiValueMap<String, String> validRequestParams() {

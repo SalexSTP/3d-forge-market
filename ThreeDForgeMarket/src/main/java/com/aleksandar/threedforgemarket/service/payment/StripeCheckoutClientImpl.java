@@ -56,6 +56,15 @@ public class StripeCheckoutClientImpl implements StripeCheckoutClient {
                 .putMetadata("targetType", request.targetType().name())
                 .putMetadata("targetId", request.targetId().toString())
                 .putMetadata("customerId", request.customerId().toString())
+                .setInvoiceCreation(SessionCreateParams.InvoiceCreation.builder()
+                        .setEnabled(true)
+                        .setInvoiceData(SessionCreateParams.InvoiceCreation.InvoiceData.builder()
+                                .setDescription(request.productName())
+                                .putMetadata("paymentTransactionId", request.paymentTransactionId().toString())
+                                .putMetadata("targetType", request.targetType().name())
+                                .putMetadata("targetId", request.targetId().toString())
+                                .build())
+                        .build())
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
@@ -88,9 +97,10 @@ public class StripeCheckoutClientImpl implements StripeCheckoutClient {
         }
 
         String paymentIntentId = session.getPaymentIntent();
+        String invoiceId = session.getInvoice();
         Map<String, String> metadata = session.getMetadata() == null ? Map.of() : session.getMetadata();
 
-        return new StripeWebhookSession(session.getId(), paymentIntentId, metadata);
+        return new StripeWebhookSession(session.getId(), paymentIntentId, invoiceId, metadata);
     }
 
     private long toCents(BigDecimal amount) {

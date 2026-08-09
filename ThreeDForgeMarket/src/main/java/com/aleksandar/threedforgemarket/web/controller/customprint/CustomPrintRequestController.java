@@ -8,8 +8,10 @@ import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintReque
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintChangeRequestFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRequestFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
 import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.customprint.CustomPrintRequestService;
+import com.aleksandar.threedforgemarket.service.payment.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -30,9 +32,14 @@ import java.util.UUID;
 @RequestMapping("/custom-prints")
 public class CustomPrintRequestController {
     private final CustomPrintRequestService customPrintRequestService;
+    private final PaymentService paymentService;
 
-    public CustomPrintRequestController(CustomPrintRequestService customPrintRequestService) {
+    public CustomPrintRequestController(
+            CustomPrintRequestService customPrintRequestService,
+            PaymentService paymentService
+    ) {
         this.customPrintRequestService = customPrintRequestService;
+        this.paymentService = paymentService;
     }
 
     @ModelAttribute("statuses")
@@ -298,8 +305,20 @@ public class CustomPrintRequestController {
         modelAndView.addObject("request", request);
         modelAndView.addObject("changeRequestForm", changeRequestForm);
         modelAndView.addObject("openModal", openModal);
+        modelAndView.addObject("paymentSummary", paymentService
+                .getLatestPaymentSummary(
+                        PaymentTargetType.CUSTOM_PRINT_REQUEST,
+                        request.id(),
+                        isCancelledBeforePayment(request.status())
+                )
+                .orElse(null));
 
         return modelAndView;
+    }
+
+    private boolean isCancelledBeforePayment(CustomPrintRequestStatus status) {
+        return status == CustomPrintRequestStatus.CANCELLED
+                || status == CustomPrintRequestStatus.REJECTED;
     }
 
     private ModelAndView editRequestModelAndView(

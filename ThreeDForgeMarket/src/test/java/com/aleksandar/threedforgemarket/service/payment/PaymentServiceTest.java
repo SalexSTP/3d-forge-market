@@ -55,6 +55,9 @@ class PaymentServiceTest {
     private StripeCheckoutClient stripeCheckoutClient;
 
     @Mock
+    private StripeInvoiceClient stripeInvoiceClient;
+
+    @Mock
     private CustomPrintRequestService customPrintRequestService;
 
     private UUID customerId;
@@ -162,6 +165,7 @@ class PaymentServiceTest {
         paymentService.handleCheckoutSessionCompleted(new StripeWebhookSession(
                 "cs_test_123",
                 "pi_test_123",
+                null,
                 Map.of("paymentTransactionId", transaction.getId().toString())
         ));
 
@@ -178,7 +182,7 @@ class PaymentServiceTest {
         when(paymentTransactionRepository.findByStripeCheckoutSessionId("cs_test_123"))
                 .thenReturn(Optional.of(transaction));
 
-        paymentService.handleCheckoutSessionExpired(new StripeWebhookSession("cs_test_123", null, Map.of()));
+        paymentService.handleCheckoutSessionExpired(new StripeWebhookSession("cs_test_123", null, null, Map.of()));
 
         assertThat(transaction.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
         assertThat(transaction.getCancelledOn()).isNotNull();
@@ -195,6 +199,49 @@ class PaymentServiceTest {
         paymentService.startCustomPrintOfferPayment(customerId, targetId, PaymentMethod.STRIPE_CHECKOUT);
 
         verify(customPrintRequestService, never()).acceptOffer(customerId, targetId);
+    }
+
+    @Test
+    void completedWebhookStoresStripeInvoiceIdAndPdfUrl() throws Exception {
+        PaymentService paymentService = paymentService(true);
+        PaymentTransaction transaction = transaction(PaymentTargetType.PRODUCT_ORDER, PaymentStatus.PENDING);
+        when(paymentTransactionRepository.findByStripeCheckoutSessionId("cs_test_123"))
+                .thenReturn(Optional.of(transaction));
+        when(stripeInvoiceClient.getInvoicePdfUrl("in_test_123"))
+                .thenReturn(Optional.of("https://stripe.test/invoice.pdf"));
+
+        paymentService.handleCheckoutSessionCompleted(new StripeWebhookSession(
+                "cs_test_123",
+                "pi_test_123",
+                "in_test_123",
+                Map.of("paymentTransactionId", transaction.getId().toString())
+        ));
+
+        assertThat(transaction.getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(transaction.getStripeInvoiceId()).isEqualTo("in_test_123");
+        assertThat(transaction.getStripeInvoicePdfUrl()).isEqualTo("https://stripe.test/invoice.pdf");
+        assertThat(transaction.getInvoiceGeneratedOn()).isNotNull();
+    }
+
+    @Test
+    void completedWebhookKeepsPaymentPaidWhenInvoiceRetrievalFails() throws Exception {
+        PaymentService paymentService = paymentService(true);
+        PaymentTransaction transaction = transaction(PaymentTargetType.PRODUCT_ORDER, PaymentStatus.PENDING);
+        when(paymentTransactionRepository.findByStripeCheckoutSessionId("cs_test_123"))
+                .thenReturn(Optional.of(transaction));
+        when(stripeInvoiceClient.getInvoicePdfUrl("in_test_123"))
+                .thenThrow(new com.stripe.exception.ApiConnectionException("Stripe unavailable"));
+
+        paymentService.handleCheckoutSessionCompleted(new StripeWebhookSession(
+                "cs_test_123",
+                "pi_test_123",
+                "in_test_123",
+                Map.of("paymentTransactionId", transaction.getId().toString())
+        ));
+
+        assertThat(transaction.getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(transaction.getStripeInvoiceId()).isEqualTo("in_test_123");
+        assertThat(transaction.getStripeInvoicePdfUrl()).isNull();
     }
 
     @Test
@@ -338,6 +385,7 @@ class PaymentServiceTest {
                 paymentTransactionRepository,
                 customerOrderRepository,
                 stripeCheckoutClient,
+                stripeInvoiceClient,
                 new StripeProperties(stripeEnabled, stripeEnabled ? "sk_test_key" : "", "whsec_test", "3DForgeMarket"),
                 new PaymentProperties("eur"),
                 customPrintRequestService,

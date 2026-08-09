@@ -4,11 +4,13 @@ import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequest
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestListItemClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintFulfillmentStatusFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
+import com.aleksandar.threedforgemarket.model.dto.payment.PaymentSummaryDto;
 import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
 import com.aleksandar.threedforgemarket.service.payment.PaymentService;
 import com.aleksandar.threedforgemarket.service.customprint.CustomPrintRequestService;
@@ -24,6 +26,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -53,10 +57,12 @@ public class AdminCustomPrintRequestController {
         modelAndView.addObject("searchRequest", searchRequest);
 
         try {
+            List<CustomPrintRequestListItemClientDto> requests = customPrintRequestService.getAllRequestsForAdmin(searchRequest);
             modelAndView.addObject(
                     "requests",
-                    customPrintRequestService.getAllRequestsForAdmin(searchRequest)
+                    requests
             );
+            modelAndView.addObject("paymentSummariesByTargetId", paymentSummariesByTargetId(requests));
         } catch (CustomPrintServiceUnavailableException exception) {
             modelAndView.addObject("requests", List.of());
             modelAndView.addObject("errorMessage", exception.getMessage());
@@ -269,6 +275,25 @@ public class AdminCustomPrintRequestController {
         modelAndView.addObject("openModal", openModal);
 
         return modelAndView;
+    }
+
+    private Map<UUID, PaymentSummaryDto> paymentSummariesByTargetId(List<CustomPrintRequestListItemClientDto> requests) {
+        Map<UUID, PaymentSummaryDto> summaries = new HashMap<>();
+
+        for (CustomPrintRequestListItemClientDto request : requests) {
+            paymentService.getLatestPaymentSummary(
+                    PaymentTargetType.CUSTOM_PRINT_REQUEST,
+                    request.id(),
+                    isCancelledBeforePayment(request.status())
+            ).ifPresent(summary -> summaries.put(request.id(), summary));
+        }
+
+        return summaries;
+    }
+
+    private boolean isCancelledBeforePayment(CustomPrintRequestStatus status) {
+        return status == CustomPrintRequestStatus.CANCELLED
+                || status == CustomPrintRequestStatus.REJECTED;
     }
 
     private CustomPrintOfferFormDto toOfferForm(CustomPrintRequestDetailsClientDto request) {

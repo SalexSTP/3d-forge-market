@@ -6,6 +6,7 @@ import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintService
 import com.aleksandar.threedforgemarket.exception.payment.PaymentOperationFailedException;
 import com.aleksandar.threedforgemarket.exception.payment.StripePaymentUnavailableException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
+import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.model.dto.payment.PaymentMethodFormDto;
 import com.aleksandar.threedforgemarket.model.dto.payment.PaymentStartResult;
 import com.aleksandar.threedforgemarket.model.dto.payment.StripeCancelResult;
@@ -201,7 +202,12 @@ public class PaymentController {
         modelAndView.addObject("paymentMethods", PaymentMethod.values());
         modelAndView.addObject("stripeAvailable", paymentService.isStripeCheckoutAvailable());
         modelAndView.addObject("paymentSummary", paymentService
-                .getLatestPaymentSummary(PaymentTargetType.CUSTOM_PRINT_REQUEST, request.id())
+                .getLatestPaymentSummary(
+                        PaymentTargetType.CUSTOM_PRINT_REQUEST,
+                        request.id(),
+                        request.status() == CustomPrintRequestStatus.CANCELLED
+                                || request.status() == CustomPrintRequestStatus.REJECTED
+                )
                 .orElse(null));
 
         return modelAndView;

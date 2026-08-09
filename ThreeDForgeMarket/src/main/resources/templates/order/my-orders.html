@@ -96,8 +96,14 @@
                             </button>
                         </form>
 
+                        <a th:if="${order.paymentSummary != null and order.paymentSummary.invoiceAvailable}"
+                           class="btn btn-ghost btn-small table-action-btn invoice-action-btn"
+                           th:href="@{/payments/{id}/invoice(id=${order.paymentSummary.paymentTransactionId})}">
+                            Invoice
+                        </a>
+
                         <span class="muted-action"
-                              th:if="${!order.cancellable and !order.deletable}">
+                              th:if="${!order.cancellable and !order.deletable and (order.paymentSummary == null or !order.paymentSummary.invoiceAvailable)}">
                             No actions
                         </span>
                     </div>

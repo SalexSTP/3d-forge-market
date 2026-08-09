@@ -99,10 +99,19 @@
                     <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
                 </td>
                 <td data-label="Actions">
-                    <a class="btn btn-small btn-ghost table-action-btn"
-                       th:href="@{/admin/custom-prints/{id}(id=${request.id})}">
-                        Details
-                    </a>
+                    <div class="table-row-actions">
+                        <a class="btn btn-small btn-ghost table-action-btn"
+                           th:href="@{/admin/custom-prints/{id}(id=${request.id})}">
+                            Details
+                        </a>
+                        <th:block th:with="paymentSummary=${paymentSummariesByTargetId[request.id]}">
+                            <a th:if="${paymentSummary != null and paymentSummary.invoiceAvailable}"
+                               class="btn btn-small btn-ghost table-action-btn invoice-action-btn"
+                               th:href="@{/admin/payments/{id}/invoice(id=${paymentSummary.paymentTransactionId})}">
+                                Invoice
+                            </a>
+                        </th:block>
+                    </div>
                 </td>
             </tr>
             </tbody>

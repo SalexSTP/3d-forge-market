@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/profile", "/profile/**").authenticated()
+                        .requestMatchers("/payments/*/invoice").hasRole("CUSTOMER")
                         .requestMatchers("/payments/custom-prints", "/payments/custom-prints/**").hasRole("CUSTOMER")
                         .requestMatchers("/payments/stripe/success", "/payments/stripe/cancel").hasRole("CUSTOMER")
                         .requestMatchers("/custom-prints", "/custom-prints/**").hasRole("CUSTOMER")

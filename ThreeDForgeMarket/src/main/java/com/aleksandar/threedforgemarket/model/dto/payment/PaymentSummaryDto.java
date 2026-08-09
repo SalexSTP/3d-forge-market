@@ -6,12 +6,16 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 @Getter
 public class PaymentSummaryDto {
+    private UUID paymentTransactionId;
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
     private BigDecimal amount;
     private String currency;
+    private boolean invoiceAvailable;
+    private boolean stripeInvoice;
 }
