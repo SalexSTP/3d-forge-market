@@ -32,6 +32,10 @@ public record CustomPrintRequestListItemClientDto(
         LocalDateTime acceptedOn,
         LocalDateTime printingStartedOn,
         LocalDateTime readyForDeliveryOn,
-        LocalDateTime deliveredOn
+        LocalDateTime deliveredOn,
+        Boolean adminAttentionRequired,
+        LocalDateTime adminAttentionMarkedOn,
+        Boolean customerResponseReminderRequired,
+        LocalDateTime customerResponseReminderMarkedOn
 ) {
 }

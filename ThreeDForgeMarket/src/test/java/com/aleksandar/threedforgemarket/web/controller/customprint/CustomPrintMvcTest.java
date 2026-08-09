@@ -632,7 +632,11 @@ class CustomPrintMvcTest {
                 details.acceptedOn(),
                 details.printingStartedOn(),
                 details.readyForDeliveryOn(),
-                details.deliveredOn()
+                details.deliveredOn(),
+                false,
+                null,
+                false,
+                null
         );
     }
 

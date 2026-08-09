@@ -28,4 +28,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             UUID authorId,
             UUID productId
     );
+
+    long countByAuthor_Id(UUID authorId);
 }

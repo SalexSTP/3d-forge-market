@@ -63,6 +63,8 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, UU
 
     boolean existsByProduct_Id(UUID productId);
 
+    long countByCustomer_Id(UUID customerId);
+
     boolean existsByCustomer_IdAndProduct_IdAndStatus(
             UUID customerId,
             UUID productId,

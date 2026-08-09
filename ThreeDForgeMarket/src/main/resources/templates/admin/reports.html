@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin reports | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Admin</p>
+        <h1>Admin reports</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="report-grid">
+        <article class="report-card">
+            <div>
+                <p class="eyebrow">Users</p>
+                <h2>Users</h2>
+                <p>Export account status and role information.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/admin/reports/users.xlsx}">Export users</a>
+        </article>
+
+        <article class="report-card">
+            <div>
+                <p class="eyebrow">Orders</p>
+                <h2>Customer orders</h2>
+                <p>Export product orders with payment and fulfillment status.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/admin/reports/orders.xlsx}">Export customer orders</a>
+        </article>
+
+        <article class="report-card">
+            <div>
+                <p class="eyebrow">Custom prints</p>
+                <h2>Custom print requests</h2>
+                <p>Export custom print request lifecycle and payment data.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/admin/reports/custom-prints.xlsx}">Export custom print requests</a>
+        </article>
+
+        <article class="report-card">
+            <div>
+                <p class="eyebrow">Full report</p>
+                <h2>Full admin report</h2>
+                <p>Export all admin report sheets in one workbook.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/admin/reports/full.xlsx}">Export full admin report</a>
+        </article>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

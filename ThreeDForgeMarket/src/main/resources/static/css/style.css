@@ -503,6 +503,7 @@ main {
 .review-card,
 .form-card,
 .summary-panel,
+.report-card,
 .empty-state,
 .prompt-box {
     border: 1px solid var(--color-line);
@@ -546,6 +547,7 @@ main {
 .summary-panel,
 .review-card,
 .form-card,
+.report-card,
 .empty-state,
 .prompt-box {
     padding: var(--space-lg);
@@ -565,10 +567,29 @@ main {
 }
 
 .card-body p,
+.report-card p,
 .empty-state p,
 .form-note,
 .lead {
     color: var(--color-muted);
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-md);
+}
+
+.report-card {
+    display: grid;
+    gap: var(--space-md);
+    align-content: space-between;
+}
+
+.report-card h2 {
+    margin: var(--space-xs) 0;
+    color: var(--color-text);
+    font-size: 1.2rem;
 }
 
 .card-topline,
