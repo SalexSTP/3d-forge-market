@@ -72,11 +72,12 @@
                 <th>Status</th>
                 <th>Created</th>
                 <th>Quoted price</th>
+                <th>Payment</th>
                 <th>Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="request : ${requests}">
+            <tr th:each="request : ${requests}" th:with="paymentSummary=${paymentSummariesByTargetId[request.id]}">
                 <td data-label="Title" th:text="${request.title}">Prototype bracket</td>
                 <td data-label="Material" th:text="${request.material}">PLA</td>
                 <td data-label="Color" th:text="${request.colorDescription}">Matte black</td>
@@ -99,6 +100,13 @@
                         EUR 42.00
                     </span>
                     <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
+                </td>
+                <td data-label="Payment">
+                    <span th:if="${paymentSummary != null}">
+                        <span th:text="${paymentSummary.paymentMethod.displayName}">Cash on delivery</span>
+                        <span class="subtle" th:text="${paymentSummary.paymentStatus.displayName}">Cash on delivery pending</span>
+                    </span>
+                    <span th:if="${paymentSummary == null}" class="muted-text">No payment yet</span>
                 </td>
                 <td data-label="Actions">
                     <a class="btn btn-small btn-ghost table-action-btn"

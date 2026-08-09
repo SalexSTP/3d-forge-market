@@ -67,11 +67,12 @@
                 <th>Material</th>
                 <th>Created</th>
                 <th>Quoted price</th>
+                <th>Payment</th>
                 <th>Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="request : ${requests}">
+            <tr th:each="request : ${requests}" th:with="paymentSummary=${paymentSummariesByTargetId[request.id]}">
                 <td data-label="Customer">
                     <strong th:text="${request.customerUsername}">customer</strong>
                     <span class="subtle" th:text="${request.customerEmail}">customer@example.com</span>
@@ -98,19 +99,24 @@
                     </span>
                     <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
                 </td>
+                <td data-label="Payment">
+                    <span th:if="${paymentSummary != null}">
+                        <span th:text="${paymentSummary.paymentMethod.displayName}">Cash on delivery</span>
+                        <span class="subtle" th:text="${paymentSummary.paymentStatus.displayName}">Cash on delivery pending</span>
+                    </span>
+                    <span th:if="${paymentSummary == null}" class="muted-text">No payment yet</span>
+                </td>
                 <td data-label="Actions">
                     <div class="table-row-actions">
                         <a class="btn btn-small btn-ghost table-action-btn"
                            th:href="@{/admin/custom-prints/{id}(id=${request.id})}">
                             Details
                         </a>
-                        <th:block th:with="paymentSummary=${paymentSummariesByTargetId[request.id]}">
-                            <a th:if="${paymentSummary != null and paymentSummary.invoiceAvailable}"
-                               class="btn btn-small btn-ghost table-action-btn invoice-action-btn"
-                               th:href="@{/admin/payments/{id}/invoice(id=${paymentSummary.paymentTransactionId})}">
-                                Invoice
-                            </a>
-                        </th:block>
+                        <a th:if="${paymentSummary != null and paymentSummary.invoiceAvailable}"
+                           class="btn btn-small btn-ghost table-action-btn invoice-action-btn"
+                           th:href="@{/admin/payments/{id}/invoice(id=${paymentSummary.paymentTransactionId})}">
+                            Invoice
+                        </a>
                     </div>
                 </td>
             </tr>

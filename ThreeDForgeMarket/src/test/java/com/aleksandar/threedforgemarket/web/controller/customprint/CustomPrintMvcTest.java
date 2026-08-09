@@ -1,6 +1,7 @@
 package com.aleksandar.threedforgemarket.web.controller.customprint;
 
 import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestListItemClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
@@ -242,6 +243,38 @@ class CustomPrintMvcTest {
     }
 
     @Test
+    void adminCustomPrintListShowsPaymentMethodAndStatusWhenPaymentExists() throws Exception {
+        paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+        when(customPrintRequestService.getAllRequestsForAdmin(any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.ACCEPTED)));
+
+        mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Payment")))
+                .andExpect(content().string(containsString("Cash on delivery")))
+                .andExpect(content().string(containsString("Cash on delivery pending")));
+    }
+
+    @Test
+    void adminCustomPrintListShowsPaymentFallbackWhenNoPaymentExists() throws Exception {
+        when(customPrintRequestService.getAllRequestsForAdmin(any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.OFFER_SENT)));
+
+        mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Payment")))
+                .andExpect(content().string(containsString("No payment yet")));
+    }
+
+    @Test
     void adminCustomPrintListShowsInvoiceActionWhenAvailable() throws Exception {
         PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
                 .customerId(customer.getId())
@@ -257,6 +290,8 @@ class CustomPrintMvcTest {
 
         mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Cash on delivery")))
+                .andExpect(content().string(containsString("Cash on delivery pending")))
                 .andExpect(content().string(containsString("Invoice")))
                 .andExpect(content().string(not(containsString("Download invoice"))))
                 .andExpect(content().string(containsString("/admin/payments/" + paymentTransaction.getId() + "/invoice")));
@@ -279,6 +314,51 @@ class CustomPrintMvcTest {
         mockMvc.perform(get("/admin/custom-prints").with(admin(admin.getId())))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("/admin/payments/" + paymentTransaction.getId() + "/invoice"))));
+    }
+
+    @Test
+    void customerCustomPrintListShowsPaymentMethodAndStatusWhenPaymentExists() throws Exception {
+        paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.STRIPE_CHECKOUT)
+                .paymentStatus(PaymentStatus.PAID)
+                .stripeInvoicePdfUrl("https://stripe.example/invoice.pdf")
+                .build());
+        when(customPrintRequestService.getCustomerRequests(eq(customer.getId()), any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.ACCEPTED)));
+
+        mockMvc.perform(get("/custom-prints").with(customer(customer.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Payment")))
+                .andExpect(content().string(containsString("Stripe Checkout")))
+                .andExpect(content().string(containsString("Paid")))
+                .andExpect(content().string(not(containsString("/payments/"))));
+    }
+
+    @Test
+    void customerCustomPrintListShowsPaymentFallbackWhenNoPaymentExists() throws Exception {
+        when(customPrintRequestService.getCustomerRequests(eq(customer.getId()), any()))
+                .thenReturn(List.of(listItem(CustomPrintRequestStatus.OFFER_SENT)));
+
+        mockMvc.perform(get("/custom-prints").with(customer(customer.getId())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Payment")))
+                .andExpect(content().string(containsString("No payment yet")));
+    }
+
+    @Test
+    void customerCustomPrintListStillWorksWhenServiceIsUnavailable() throws Exception {
+        when(customPrintRequestService.getCustomerRequests(eq(customer.getId()), any()))
+                .thenThrow(new CustomPrintServiceUnavailableException());
+
+        mockMvc.perform(get("/custom-prints").with(customer(customer.getId())))
+                .andExpect(status().isOk())
+                .andExpect(view().name("custom-print/list"))
+                .andExpect(content().string(containsString("My custom print requests")));
     }
 
     @Test
