@@ -1,9 +1,15 @@
 package com.aleksandar.threedforgemarket.service.order;
 
 import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
-import com.aleksandar.threedforgemarket.exception.order.*;
+import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
+import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.OrderStatusUpdateNotAllowedException;
+import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
 import com.aleksandar.threedforgemarket.mapper.order.CustomerOrderMapper;
+import com.aleksandar.threedforgemarket.model.dto.order.CreatedOrderDto;
 import com.aleksandar.threedforgemarket.model.dto.order.AdminOrderListItemDto;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
 import com.aleksandar.threedforgemarket.model.dto.order.CustomerOrderListItemDto;
@@ -11,10 +17,14 @@ import com.aleksandar.threedforgemarket.model.entity.CustomerOrder;
 import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
 import com.aleksandar.threedforgemarket.model.enums.user.UserRole;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
+import com.aleksandar.threedforgemarket.service.payment.PaymentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,25 +34,30 @@ import java.util.UUID;
 
 @Service
 public class CustomerOrderService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerOrderService.class);
+
     private final CustomerOrderRepository customerOrderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CustomerOrderMapper customerOrderMapper;
+    private final PaymentService paymentService;
 
     public CustomerOrderService(
             CustomerOrderRepository customerOrderRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
-            CustomerOrderMapper customerOrderMapper
+            CustomerOrderMapper customerOrderMapper,
+            PaymentService paymentService
     ) {
         this.customerOrderRepository = customerOrderRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.customerOrderMapper = customerOrderMapper;
+        this.paymentService = paymentService;
     }
 
     @Transactional
-    public void createOrder(
+    public CreatedOrderDto createOrder(
             UUID customerId,
             CreateOrderRequest orderRequest
     ) {
@@ -70,7 +85,20 @@ public class CustomerOrderService {
                 totalPrice
         );
 
-        customerOrderRepository.save(customerOrder);
+        CustomerOrder savedOrder = customerOrderRepository.save(customerOrder);
+        LOGGER.info("Created order with id={} for customer id={} and product id={}",
+                savedOrder.getId(),
+                customer.getId(),
+                product.getId());
+
+        return new CreatedOrderDto(
+                savedOrder.getId(),
+                customer.getId(),
+                product.getId(),
+                product.getName(),
+                product.getImageUrl(),
+                savedOrder.getTotalPrice()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -78,11 +106,31 @@ public class CustomerOrderService {
         return customerOrderRepository
                 .findVisibleForCustomerOrderedByStatus(customerId)
                 .stream()
-                .map(customerOrder -> customerOrderMapper.toListItemDto(
-                        customerOrder,
-                        isCancellable(customerOrder.getStatus()),
-                        isDeletable(customerOrder.getStatus())
-                ))
+                .map(customerOrder -> {
+                    CustomerOrderListItemDto dto = customerOrderMapper.toListItemDto(
+                            customerOrder,
+                            isCancellable(customerOrder.getStatus()),
+                            isDeletable(customerOrder.getStatus())
+                    );
+
+                    return CustomerOrderListItemDto.builder()
+                            .id(dto.getId())
+                            .productId(dto.getProductId())
+                            .productName(dto.getProductName())
+                            .quantity(dto.getQuantity())
+                            .totalPrice(dto.getTotalPrice())
+                            .status(dto.getStatus())
+                            .paymentSummary(paymentService
+                                    .getLatestPaymentSummary(PaymentTargetType.PRODUCT_ORDER, customerOrder.getId())
+                                    .orElse(null))
+                            .createdOn(dto.getCreatedOn())
+                            .updatedOn(dto.getUpdatedOn())
+                            .deliveryAddress(dto.getDeliveryAddress())
+                            .customerNote(dto.getCustomerNote())
+                            .cancellable(dto.isCancellable())
+                            .deletable(dto.isDeletable())
+                            .build();
+                })
                 .toList();
     }
 
@@ -99,6 +147,7 @@ public class CustomerOrderService {
         customerOrder.setStatus(OrderStatus.CANCELLED);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Cancelled order id={} for customer id={}", orderId, customerId);
     }
 
     @Transactional
@@ -114,17 +163,40 @@ public class CustomerOrderService {
         customerOrder.setDeletedFromCustomerHistory(true);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Removed order id={} from customer history for customer id={}", orderId, customerId);
     }
 
     @Transactional(readOnly = true)
     public List<AdminOrderListItemDto> getAllOrdersForAdmin() {
         return customerOrderRepository.findAllForAdminOrderedByStatus()
                 .stream()
-                .map(customerOrder -> customerOrderMapper.toAdminListItemDto(
-                        customerOrder,
-                        getAvailableStatusUpdates(customerOrder.getStatus()),
-                        isDeletable(customerOrder.getStatus())
-                ))
+                .map(customerOrder -> {
+                    AdminOrderListItemDto dto = customerOrderMapper.toAdminListItemDto(
+                            customerOrder,
+                            getAvailableStatusUpdates(customerOrder.getStatus()),
+                            isDeletable(customerOrder.getStatus())
+                    );
+
+                    return AdminOrderListItemDto.builder()
+                            .id(dto.getId())
+                            .customerUsername(dto.getCustomerUsername())
+                            .customerEmail(dto.getCustomerEmail())
+                            .productId(dto.getProductId())
+                            .productName(dto.getProductName())
+                            .quantity(dto.getQuantity())
+                            .totalPrice(dto.getTotalPrice())
+                            .deliveryAddress(dto.getDeliveryAddress())
+                            .customerNote(dto.getCustomerNote())
+                            .createdOn(dto.getCreatedOn())
+                            .updatedOn(dto.getUpdatedOn())
+                            .status(dto.getStatus())
+                            .paymentSummary(paymentService
+                                    .getLatestPaymentSummary(PaymentTargetType.PRODUCT_ORDER, customerOrder.getId())
+                                    .orElse(null))
+                            .availableStatusUpdates(dto.getAvailableStatusUpdates())
+                            .deletable(dto.isDeletable())
+                            .build();
+                })
                 .toList();
     }
 
@@ -144,6 +216,12 @@ public class CustomerOrderService {
         customerOrder.setStatus(requestedStatus);
 
         customerOrderRepository.save(customerOrder);
+
+        if (requestedStatus == OrderStatus.DELIVERED) {
+            paymentService.markCashOnDeliveryPaidIfPending(PaymentTargetType.PRODUCT_ORDER, orderId);
+        }
+
+        LOGGER.info("Updated order status to {} for order id={}", requestedStatus, orderId);
     }
 
     @Transactional
@@ -158,6 +236,7 @@ public class CustomerOrderService {
         customerOrder.setDeletedFromAdminHistory(true);
 
         customerOrderRepository.save(customerOrder);
+        LOGGER.info("Removed order id={} from admin history", orderId);
     }
 
     private boolean isCancellable(OrderStatus status) {

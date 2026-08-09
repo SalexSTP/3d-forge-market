@@ -3,10 +3,10 @@ package com.aleksandar.threedforgemarket.web.controller.user;
 import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.auth.UsernameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.model.user.EditProfileRequest;
+import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.user.UserService;
-import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.UUID;
 
 @Controller
 public class ProfileController {
@@ -26,24 +24,28 @@ public class ProfileController {
     }
 
     @GetMapping("/profile")
-    public ModelAndView getProfilePage(HttpSession session) {
+    public ModelAndView getProfilePage(
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser
+    ) {
         ModelAndView modelAndView = new ModelAndView("user/profile");
 
         modelAndView.addObject(
                 "profile",
-                userService.getCurrentUserProfile(getCurrentUserId(session))
+                userService.getCurrentUserProfile(currentUser.getId())
         );
 
         return modelAndView;
     }
 
     @GetMapping("/profile/edit")
-    public ModelAndView getEditProfilePage(HttpSession session) {
+    public ModelAndView getEditProfilePage(
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser
+    ) {
         ModelAndView modelAndView = new ModelAndView("user/edit-profile");
 
         modelAndView.addObject(
                 "editProfileRequest",
-                userService.getEditProfileRequest(getCurrentUserId(session))
+                userService.getEditProfileRequest(currentUser.getId())
         );
 
         return modelAndView;
@@ -54,7 +56,7 @@ public class ProfileController {
             @Valid @ModelAttribute("editProfileRequest")
             EditProfileRequest editProfileRequest,
             BindingResult bindingResult,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
@@ -63,7 +65,7 @@ public class ProfileController {
 
         try {
             userService.updateCurrentUserProfile(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     editProfileRequest
             );
 
@@ -92,17 +94,5 @@ public class ProfileController {
 
             return new ModelAndView("user/edit-profile");
         }
-    }
-
-    private UUID getCurrentUserId(HttpSession session) {
-        Object sessionUserId = session.getAttribute(
-                AuthController.USER_ID_SESSION_ATTRIBUTE
-        );
-
-        if (sessionUserId instanceof UUID userId) {
-            return userId;
-        }
-
-        throw new IllegalStateException("Authenticated user session is required.");
     }
 }

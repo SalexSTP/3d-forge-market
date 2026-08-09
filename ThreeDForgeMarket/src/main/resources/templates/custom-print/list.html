@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom prints | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main>
+    <section class="page-heading with-action">
+        <div>
+            <p class="eyebrow">Custom prints</p>
+            <h1>My custom print requests</h1>
+        </div>
+        <a class="btn btn-primary"
+           th:if="${serviceUnavailable != true}"
+           th:href="@{/custom-prints/new}">+ New request</a>
+    </section>
+
+    <div th:if="${serviceUnavailable != true}" th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="catalog-tools admin-filter-tools" th:if="${serviceUnavailable != true}">
+        <button class="btn btn-filter" type="button" aria-expanded="false" aria-controls="customer-custom-print-filter-panel">
+            Search and filter
+        </button>
+
+        <form id="customer-custom-print-filter-panel"
+              class="filter-bar custom-print-filter-bar is-collapsed"
+              th:action="@{/custom-prints}"
+              th:object="${searchRequest}"
+              method="get">
+            <div class="field">
+                <label for="keyword">Search</label>
+                <input id="keyword" type="search" th:field="*{keyword}" placeholder="Title, material, message">
+            </div>
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" th:field="*{status}">
+                    <option value="">All statuses</option>
+                    <option th:each="statusOption : ${statuses}"
+                            th:value="${statusOption}"
+                            th:text="${statusOption.displayName}">
+                        Pending review
+                    </option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="createdFrom">Created from</label>
+                <input id="createdFrom" type="date" th:field="*{createdFrom}">
+            </div>
+            <div class="field">
+                <label for="createdTo">Created to</label>
+                <input id="createdTo" type="date" th:field="*{createdTo}">
+            </div>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-ghost" th:href="@{/custom-prints}">Reset</a>
+        </form>
+    </section>
+
+    <section class="responsive-table"
+             th:if="${serviceUnavailable != true and requests != null and !#lists.isEmpty(requests)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Material</th>
+                <th>Color</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Quoted price</th>
+                <th>Payment</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="request : ${requests}" th:with="paymentSummary=${paymentSummariesByTargetId[request.id]}">
+                <td data-label="Title" th:text="${request.title}">Prototype bracket</td>
+                <td data-label="Material" th:text="${request.material}">PLA</td>
+                <td data-label="Color" th:text="${request.colorDescription}">Matte black</td>
+                <td data-label="Quantity" th:text="${request.quantity}">1</td>
+                <td data-label="Status">
+                    <span th:class="|status-badge status-${#strings.toLowerCase(request.status.name())}|"
+                          th:text="${request.status.displayName}">
+                        Pending review
+                    </span>
+                </td>
+                <td data-label="Created">
+                    <time th:datetime="${#temporals.format(request.createdOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(request.createdOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                </td>
+                <td data-label="Quoted price">
+                    <span th:if="${request.quotedPrice != null}"
+                          th:text="|EUR ${#numbers.formatDecimal(request.quotedPrice, 1, 2)}|">
+                        EUR 42.00
+                    </span>
+                    <span th:if="${request.quotedPrice == null}" class="muted-text">Not quoted</span>
+                </td>
+                <td data-label="Payment">
+                    <span th:if="${paymentSummary != null}">
+                        <span th:text="${paymentSummary.paymentMethod.displayName}">Cash on delivery</span>
+                        <span class="subtle" th:text="${paymentSummary.paymentStatus.displayName}">Cash on delivery pending</span>
+                    </span>
+                    <span th:if="${paymentSummary == null}" class="muted-text">No payment yet</span>
+                </td>
+                <td data-label="Actions">
+                    <a class="btn btn-small btn-ghost table-action-btn"
+                       th:href="@{/custom-prints/{id}(id=${request.id})}">
+                        Details
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="empty-state"
+             th:if="${serviceUnavailable != true and (requests == null or #lists.isEmpty(requests))}">
+        <p class="eyebrow">Request queue</p>
+        <h2 th:text="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null
+            ? 'No custom print requests match these filters.'
+            : 'No custom print requests yet.'}">
+            No custom print requests yet.
+        </h2>
+        <p th:text="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null
+            ? 'Try adjusting or clearing the active filters.'
+            : 'Submit dimensions, material, color, and reference details for a custom quote.'}">
+            Submit dimensions, material, color, and reference details for a custom quote.
+        </p>
+        <a class="btn btn-primary"
+           th:if="${searchRequest.keyword == null
+            and searchRequest.status == null
+            and searchRequest.createdFrom == null
+            and searchRequest.createdTo == null}"
+           th:href="@{/custom-prints/new}">
+            Create request
+        </a>
+        <a class="btn btn-ghost"
+           th:if="${searchRequest.keyword != null
+            or searchRequest.status != null
+            or searchRequest.createdFrom != null
+            or searchRequest.createdTo != null}"
+           th:href="@{/custom-prints}">
+            Clear filters
+        </a>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

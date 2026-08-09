@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User management | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main>
+    <section class="page-heading">
+        <p class="eyebrow">Admin</p>
+        <h1>User management</h1>
+    </section>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <section class="catalog-tools admin-filter-tools">
+        <button class="btn btn-filter" type="button" aria-expanded="false" aria-controls="admin-user-filter-panel">
+            Search and filter
+        </button>
+
+        <form id="admin-user-filter-panel"
+              class="filter-bar admin-filter-bar admin-user-filter-bar is-collapsed"
+              th:action="@{/admin/users}"
+              th:object="${searchRequest}"
+              method="get">
+            <div class="field">
+                <label for="keyword">Search</label>
+                <input id="keyword"
+                       type="search"
+                       th:field="*{keyword}"
+                       maxlength="100"
+                       placeholder="Username or email">
+            </div>
+
+            <div class="field">
+                <label for="role">Role</label>
+                <select id="role" th:field="*{role}">
+                    <option value="">All roles</option>
+                    <option th:each="roleOption : ${roles}"
+                            th:value="${roleOption}"
+                            th:text="${roleOption.name() == 'ADMIN' ? 'Admin' : 'Customer'}">
+                        Customer
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="active">Status</label>
+                <select id="active" th:field="*{active}">
+                    <option value="">All accounts</option>
+                    <option value="true">Active</option>
+                    <option value="false">Deactivated</option>
+                </select>
+            </div>
+
+            <details class="date-filter-popover"
+                     th:classappend="${searchRequest.createdFrom != null or searchRequest.createdTo != null} ? 'has-value'">
+                <summary>
+                    <span>Created stamp</span>
+                </summary>
+
+                <div class="date-filter-panel">
+                    <div class="field">
+                        <label for="createdFrom">From</label>
+                        <input id="createdFrom" type="date" th:field="*{createdFrom}">
+                    </div>
+
+                    <div class="field">
+                        <label for="createdTo">To</label>
+                        <input id="createdTo" type="date" th:field="*{createdTo}">
+                    </div>
+                </div>
+            </details>
+
+            <details class="date-filter-popover"
+                     th:classappend="${searchRequest.lastLoginFrom != null or searchRequest.lastLoginTo != null} ? 'has-value'">
+                <summary>
+                    <span>Last login stamp</span>
+                </summary>
+
+                <div class="date-filter-panel">
+                    <div class="field">
+                        <label for="lastLoginFrom">From</label>
+                        <input id="lastLoginFrom" type="date" th:field="*{lastLoginFrom}">
+                    </div>
+
+                    <div class="field">
+                        <label for="lastLoginTo">To</label>
+                        <input id="lastLoginTo" type="date" th:field="*{lastLoginTo}">
+                    </div>
+                </div>
+            </details>
+
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-ghost" th:href="@{/admin/users}">Reset</a>
+        </form>
+    </section>
+
+    <section class="responsive-table admin-users-table" th:if="${users != null and !#lists.isEmpty(users)}">
+        <table>
+            <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Last login</th>
+                <th>Deactivated</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user, userStat : ${users}">
+                <td data-label="User">
+                    <strong th:text="${user.username}">customer</strong>
+                    <span class="badge user-self-badge" th:if="${user.currentUser}">You</span>
+                    <span class="subtle" th:text="${user.email}">customer@example.com</span>
+                </td>
+
+                <td data-label="Role">
+                    <span class="badge" th:text="${user.role.name() == 'ADMIN' ? 'Admin' : 'Customer'}">Customer</span>
+                </td>
+
+                <td data-label="Status">
+                    <span class="status-badge status-available" th:if="${user.active}">Active</span>
+                    <span class="status-badge status-hidden" th:if="${!user.active}">Deactivated</span>
+                </td>
+
+                <td data-label="Created">
+                    <time th:datetime="${#temporals.format(user.createdOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(user.createdOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                </td>
+
+                <td data-label="Last login">
+                    <time th:if="${user.lastLoginOn != null}"
+                          th:datetime="${#temporals.format(user.lastLoginOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(user.lastLoginOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <span class="muted-text" th:if="${user.lastLoginOn == null}">Never logged in</span>
+                </td>
+
+                <td data-label="Deactivated">
+                    <time th:if="${user.deactivatedOn != null}"
+                          th:datetime="${#temporals.format(user.deactivatedOn, 'yyyy-MM-dd''T''HH:mm')}"
+                          th:text="${#temporals.format(user.deactivatedOn, 'dd MMM yyyy, HH:mm')}">
+                        21 Jun 2026, 10:00
+                    </time>
+                    <span class="muted-text" th:if="${user.deactivatedOn == null}">Not deactivated</span>
+                </td>
+
+                <td data-label="Actions">
+                    <div class="admin-user-actions" th:if="${!user.currentUser}">
+                        <form class="role-update-form"
+                              th:action="@{/admin/users/{id}/role(id=${user.id})}"
+                              method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="_method" value="put">
+
+                            <label class="sr-only" th:for="|role-${userStat.index}|">Change role</label>
+                            <select th:id="|role-${userStat.index}|" name="role" required>
+                                <option th:each="roleOption : ${roles}"
+                                        th:value="${roleOption}"
+                                        th:selected="${roleOption == user.role}"
+                                        th:text="${roleOption.name() == 'ADMIN' ? 'Admin' : 'Customer'}">
+                                    Customer
+                                </option>
+                            </select>
+
+                            <button class="btn btn-small btn-primary" type="submit">
+                                Save role
+                            </button>
+                        </form>
+
+                        <form th:if="${user.active}"
+                              th:action="@{/admin/users/{id}/deactivate(id=${user.id})}"
+                              method="post"
+                              data-confirm="Deactivate this account? The user will not be able to log in.">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="_method" value="put">
+
+                            <button class="btn btn-danger btn-small" type="submit">
+                                Deactivate
+                            </button>
+                        </form>
+
+                        <form th:if="${!user.active}"
+                              th:action="@{/admin/users/{id}/reactivate(id=${user.id})}"
+                              method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="_method" value="put">
+
+                            <button class="btn btn-small btn-reactivate" type="submit">
+                                Reactivate
+                            </button>
+                        </form>
+                    </div>
+
+                    <span class="muted-action" th:if="${user.currentUser}">
+                        Current account
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="empty-state" th:if="${users == null or #lists.isEmpty(users)}">
+        <h2>No users match these filters.</h2>
+        <p>Try adjusting or clearing the active filters.</p>
+        <a class="btn btn-ghost" th:href="@{/admin/users}">Clear filters</a>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

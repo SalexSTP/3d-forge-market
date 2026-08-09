@@ -26,3 +26,8 @@ replay_pid*
 # IntelliJ IDEA
 .idea/
 *.iml
+
+.env
+.agents
+**/target/
+**/.idea/

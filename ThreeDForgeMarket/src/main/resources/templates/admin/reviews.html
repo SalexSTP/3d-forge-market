@@ -77,6 +77,7 @@
                     <form th:action="@{/admin/reviews/{id}(id=${review.id})}"
                           method="post"
                           data-confirm="Delete this review permanently?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" name="_method" value="delete">
 
                         <button class="btn btn-danger btn-small"

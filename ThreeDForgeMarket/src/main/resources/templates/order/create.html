@@ -34,6 +34,7 @@
               th:object="${orderForm}"
               method="post"
               th:attr="data-unit-price=${product.price}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" th:field="*{productId}">
 
             <p class="field-error"
@@ -73,6 +74,28 @@
                           placeholder="Delivery details or an optional colour request. Requests are considered where possible."></textarea>
                 <p class="field-error" th:if="${#fields.hasErrors('customerNote')}" th:errors="*{customerNote}">Customer note error.</p>
             </div>
+
+            <fieldset class="payment-method-group">
+                <legend>Payment method</legend>
+
+                <label class="payment-option"
+                       th:each="method : ${paymentMethods}">
+                    <input type="radio"
+                           th:field="*{paymentMethod}"
+                           th:value="${method}"
+                           th:disabled="${method.name() == 'STRIPE_CHECKOUT' and !stripeAvailable}">
+                    <span th:text="${method.displayName}">Cash on delivery</span>
+                    <small th:if="${method.name() == 'STRIPE_CHECKOUT' and !stripeAvailable}">
+                        Online payments are currently unavailable.
+                    </small>
+                </label>
+
+                <p class="field-error"
+                   th:if="${#fields.hasErrors('paymentMethod')}"
+                   th:errors="*{paymentMethod}">
+                    Payment method error.
+                </p>
+            </fieldset>
 
             <div class="readonly-total">
                 <span>Estimated total</span>

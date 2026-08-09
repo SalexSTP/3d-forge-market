@@ -1,15 +1,17 @@
 package com.aleksandar.threedforgemarket.web.common;
 
-import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
-import com.aleksandar.threedforgemarket.exception.auth.PasswordsDoNotMatchException;
-import com.aleksandar.threedforgemarket.exception.auth.UserNotFoundException;
-import com.aleksandar.threedforgemarket.exception.auth.UsernameAlreadyExistsException;
+import com.aleksandar.threedforgemarket.exception.auth.*;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestNotFoundException;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequestOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintServiceUnavailableException;
 import com.aleksandar.threedforgemarket.exception.order.CustomerOrderNotFoundException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderStatusUpdateNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
+import com.aleksandar.threedforgemarket.exception.payment.PaymentOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.payment.StripePaymentUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
@@ -34,6 +36,7 @@ public class GlobalExceptionHandler {
             CustomerOrderNotFoundException.class,
             ReviewNotFoundException.class,
             UserNotFoundException.class,
+            CustomPrintRequestNotFoundException.class,
             NoResourceFoundException.class
     })
     public ModelAndView handleNotFound() {
@@ -55,7 +58,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             OrderCreationNotAllowedException.class,
-            ReviewCreationNotAllowedException.class
+            ReviewCreationNotAllowedException.class,
+            UserOperationNotAllowedException.class
     })
     public ModelAndView handleForbiddenDomainAction() {
         return errorView("error/403", HttpStatus.FORBIDDEN);
@@ -72,10 +76,18 @@ public class GlobalExceptionHandler {
             ProductDeletionNotAllowedException.class,
             ProductNameAlreadyExistsException.class,
             ReviewAlreadyExistsException.class,
-            ReviewEligibilityNotMetException.class
+            ReviewEligibilityNotMetException.class,
+            CustomPrintRequestOperationFailedException.class,
+            PaymentOperationFailedException.class,
+            StripePaymentUnavailableException.class
     })
     public ModelAndView handleDomainConflict() {
         return errorView("error/409", HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(CustomPrintServiceUnavailableException.class)
+    public ModelAndView handleCustomPrintServiceUnavailable() {
+        return errorView("error/500", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ModelAndView errorView(String viewName, HttpStatus status) {

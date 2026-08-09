@@ -6,10 +6,10 @@ import com.aleksandar.threedforgemarket.exception.review.ReviewCreationNotAllowe
 import com.aleksandar.threedforgemarket.exception.review.ReviewEligibilityNotMetException;
 import com.aleksandar.threedforgemarket.exception.review.ReviewNotFoundException;
 import com.aleksandar.threedforgemarket.model.review.ReviewFormDto;
+import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.review.ReviewService;
-import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +30,10 @@ public class ReviewController {
     @GetMapping("/new")
     public ModelAndView getCreateReviewPage(
             @RequestParam UUID productId,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
-        UUID customerId = getCurrentUserId(session);
+        UUID customerId = currentUser.getId();
 
         if (!reviewService.canCustomerReview(customerId, productId)) {
             redirectAttributes.addFlashAttribute(
@@ -54,7 +54,7 @@ public class ReviewController {
     public ModelAndView createReview(
             @Valid @ModelAttribute("reviewForm") ReviewFormDto reviewForm,
             BindingResult bindingResult,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasFieldErrors("productId")) {
@@ -72,7 +72,7 @@ public class ReviewController {
 
         try {
             reviewService.createReview(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     reviewForm
             );
 
@@ -107,13 +107,13 @@ public class ReviewController {
     @GetMapping("/{id}/edit")
     public ModelAndView getEditReviewPage(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             ReviewFormDto reviewForm = reviewService.getReviewFormForCustomer(
                     id,
-                    getCurrentUserId(session)
+                    currentUser.getId()
             );
 
             return editReviewFormModelAndView(reviewForm);
@@ -133,7 +133,7 @@ public class ReviewController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("reviewForm") ReviewFormDto reviewForm,
             BindingResult bindingResult,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         reviewForm.setId(id);
@@ -145,7 +145,7 @@ public class ReviewController {
         try {
             UUID productId = reviewService.updateReview(
                     id,
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     reviewForm
             );
 
@@ -169,13 +169,13 @@ public class ReviewController {
     @DeleteMapping("/{id}")
     public ModelAndView deleteReview(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             UUID productId = reviewService.deleteReviewByAuthor(
                     id,
-                    getCurrentUserId(session)
+                    currentUser.getId()
             );
 
             redirectAttributes.addFlashAttribute(
@@ -217,17 +217,5 @@ public class ReviewController {
 
     private ModelAndView redirectToProduct(UUID productId) {
         return new ModelAndView("redirect:/products/" + productId);
-    }
-
-    private UUID getCurrentUserId(HttpSession session) {
-        Object sessionUserId = session.getAttribute(
-                AuthController.USER_ID_SESSION_ATTRIBUTE
-        );
-
-        if (sessionUserId instanceof UUID userId) {
-            return userId;
-        }
-
-        throw new IllegalStateException("Authenticated user session is required.");
     }
 }

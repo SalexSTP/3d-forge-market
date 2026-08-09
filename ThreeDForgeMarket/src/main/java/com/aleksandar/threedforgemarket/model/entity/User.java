@@ -41,6 +41,12 @@ public class User {
 
     private LocalDateTime lastLoginOn;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean active = true;
+
+    private LocalDateTime deactivatedOn;
+
     @PrePersist
     private void onCreate() {
         if (createdOn == null) {

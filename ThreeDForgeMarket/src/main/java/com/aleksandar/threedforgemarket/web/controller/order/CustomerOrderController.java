@@ -5,15 +5,22 @@ import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllo
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
+import com.aleksandar.threedforgemarket.exception.payment.PaymentOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.payment.StripePaymentUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
+import com.aleksandar.threedforgemarket.model.dto.order.CreatedOrderDto;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
+import com.aleksandar.threedforgemarket.model.dto.payment.PaymentStartResult;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentMethod;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
+import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.order.CustomerOrderService;
+import com.aleksandar.threedforgemarket.service.payment.PaymentService;
 import com.aleksandar.threedforgemarket.service.product.ProductService;
-import com.aleksandar.threedforgemarket.web.controller.auth.AuthController;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,23 +35,35 @@ public class CustomerOrderController {
 
     private final CustomerOrderService customerOrderService;
     private final ProductService productService;
+    private final PaymentService paymentService;
 
     public CustomerOrderController(
             CustomerOrderService customerOrderService,
-            ProductService productService
+            ProductService productService,
+            PaymentService paymentService
     ) {
         this.customerOrderService = customerOrderService;
         this.productService = productService;
+        this.paymentService = paymentService;
     }
 
     @GetMapping("/create")
     public ModelAndView getCreateOrderPage(
             @RequestParam UUID productId,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
-        CreateOrderRequest orderForm = new CreateOrderRequest();
-        orderForm.setProductId(productId);
-        orderForm.setQuantity(1);
+        CreateOrderRequest orderForm;
+
+        if (model.containsAttribute("orderForm")) {
+            orderForm = (CreateOrderRequest) model.asMap().get("orderForm");
+            orderForm.setProductId(productId);
+        } else {
+            orderForm = new CreateOrderRequest();
+            orderForm.setProductId(productId);
+            orderForm.setQuantity(1);
+            orderForm.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY);
+        }
 
         try {
             return createOrderFormModelAndView(orderForm);
@@ -63,7 +82,7 @@ public class CustomerOrderController {
     public ModelAndView createOrder(
             @Valid @ModelAttribute("orderForm") CreateOrderRequest orderForm,
             BindingResult bindingResult,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasFieldErrors("productId")) {
@@ -89,18 +108,45 @@ public class CustomerOrderController {
             }
         }
 
+        if (orderForm.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT
+                && !paymentService.isStripeCheckoutAvailable()) {
+            bindingResult.rejectValue(
+                    "paymentMethod",
+                    "paymentMethod.stripeUnavailable",
+                    "Online payments are currently unavailable."
+            );
+
+            try {
+                return createOrderFormModelAndView(orderForm);
+            } catch (ProductNotFoundException exception) {
+                redirectAttributes.addFlashAttribute(
+                        "errorMessage",
+                        "This product is no longer available for ordering."
+                );
+
+                return new ModelAndView("redirect:/products");
+            }
+        }
+
         try {
-            customerOrderService.createOrder(
-                    getCurrentUserId(session),
+            CreatedOrderDto order = customerOrderService.createOrder(
+                    currentUser.getId(),
                     orderForm
+            );
+
+            PaymentStartResult paymentStartResult = paymentService.startProductOrderPayment(
+                    order,
+                    orderForm.getPaymentMethod()
             );
 
             redirectAttributes.addFlashAttribute(
                     "successMessage",
-                    "Your order was placed successfully."
+                    orderForm.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT
+                            ? "Your order was placed. Complete payment in Stripe Checkout."
+                            : "Your order was placed successfully."
             );
 
-            return new ModelAndView("redirect:/orders/my");
+            return new ModelAndView("redirect:" + paymentStartResult.redirectUrl());
 
         } catch (ProductUnavailableException | ProductNotFoundException exception) {
             redirectAttributes.addFlashAttribute(
@@ -117,17 +163,22 @@ public class CustomerOrderController {
             );
 
             return new ModelAndView("redirect:/");
+        } catch (StripePaymentUnavailableException | PaymentOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+            return new ModelAndView("redirect:/orders/my");
         }
     }
 
-    @GetMapping("/my")
-    public ModelAndView getMyOrdersPage(HttpSession session) {
+    @GetMapping({"", "/my"})
+    public ModelAndView getMyOrdersPage(
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser
+    ) {
         ModelAndView modelAndView = new ModelAndView("order/my-orders");
 
         modelAndView.addObject(
                 "orders",
                 customerOrderService.getOrdersForCustomer(
-                        getCurrentUserId(session)
+                        currentUser.getId()
                 )
         );
 
@@ -137,12 +188,12 @@ public class CustomerOrderController {
     @PutMapping("/{id}/cancel")
     public ModelAndView cancelOrder(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             customerOrderService.cancelOrder(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     id
             );
 
@@ -166,12 +217,12 @@ public class CustomerOrderController {
     @DeleteMapping("/{id}")
     public ModelAndView deleteOrderFromHistory(
             @PathVariable UUID id,
-            HttpSession session,
+            @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
         try {
             customerOrderService.deleteOrderFromHistory(
-                    getCurrentUserId(session),
+                    currentUser.getId(),
                     id
             );
 
@@ -211,19 +262,9 @@ public class CustomerOrderController {
         modelAndView.addObject("product", product);
         modelAndView.addObject("orderForm", orderForm);
         modelAndView.addObject("calculatedTotal", calculatedTotal);
+        modelAndView.addObject("paymentMethods", PaymentMethod.values());
+        modelAndView.addObject("stripeAvailable", paymentService.isStripeCheckoutAvailable());
 
         return modelAndView;
-    }
-
-    private UUID getCurrentUserId(HttpSession session) {
-        Object sessionUserId = session.getAttribute(
-                AuthController.USER_ID_SESSION_ATTRIBUTE
-        );
-
-        if (sessionUserId instanceof UUID userId) {
-            return userId;
-        }
-
-        throw new IllegalStateException("Authenticated user session is required.");
     }
 }

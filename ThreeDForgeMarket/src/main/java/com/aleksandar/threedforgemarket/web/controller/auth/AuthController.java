@@ -1,27 +1,25 @@
 package com.aleksandar.threedforgemarket.web.controller.auth;
 
 import com.aleksandar.threedforgemarket.exception.auth.EmailAlreadyExistsException;
-import com.aleksandar.threedforgemarket.exception.auth.InvalidLoginCredentialsException;
 import com.aleksandar.threedforgemarket.exception.auth.PasswordsDoNotMatchException;
 import com.aleksandar.threedforgemarket.exception.auth.UsernameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.model.dto.auth.LoginRequest;
 import com.aleksandar.threedforgemarket.model.dto.auth.RegisterRequest;
-import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.service.user.UserService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AuthController {
-    public static final String USER_ID_SESSION_ATTRIBUTE = "user_id";
-
     private final UserService userService;
 
     public AuthController(UserService userService) {
@@ -29,8 +27,8 @@ public class AuthController {
     }
 
     @GetMapping("/auth/register")
-    public ModelAndView getRegisterPage(HttpSession session) {
-        if (isAuthenticated(session)) {
+    public ModelAndView getRegisterPage(Authentication authentication) {
+        if (isAuthenticated(authentication)) {
             return new ModelAndView("redirect:/");
         }
 
@@ -44,10 +42,10 @@ public class AuthController {
     public ModelAndView register(
             @Valid @ModelAttribute("registerForm") RegisterRequest registerRequest,
             BindingResult bindingResult,
-            HttpSession session,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
-        if (isAuthenticated(session)) {
+        if (isAuthenticated(authentication)) {
             return new ModelAndView("redirect:/");
         }
 
@@ -91,67 +89,45 @@ public class AuthController {
     }
 
     @GetMapping("/auth/login")
-    public ModelAndView getLoginPage(HttpSession session) {
-        if (isAuthenticated(session)) {
+    public ModelAndView getLoginPage(
+            Authentication authentication,
+            @RequestParam(required = false) String disabled,
+            @RequestParam(required = false) String error,
+            @RequestParam(required = false) String logout
+    ) {
+        if (isAuthenticated(authentication)) {
             return new ModelAndView("redirect:/");
         }
 
         ModelAndView modelAndView = new ModelAndView("auth/login");
         modelAndView.addObject("loginForm", new LoginRequest());
 
+        if (disabled != null) {
+            modelAndView.addObject(
+                    "errorMessage",
+                    "Your account has been deactivated and cannot sign in."
+            );
+        }
+        else if (error != null) {
+            modelAndView.addObject(
+                    "errorMessage",
+                    "Invalid username, email, or password."
+            );
+        }
+
+        if (logout != null) {
+            modelAndView.addObject(
+                    "successMessage",
+                    "You have been logged out successfully."
+            );
+        }
+
         return modelAndView;
     }
 
-    @PostMapping("/auth/login")
-    public ModelAndView login(
-            @Valid @ModelAttribute("loginForm") LoginRequest loginRequest,
-            BindingResult bindingResult,
-            HttpSession session
-    ) {
-        if (isAuthenticated(session)) {
-            return new ModelAndView("redirect:/");
-        }
-
-        if (bindingResult.hasErrors()) {
-            return new ModelAndView("auth/login");
-        }
-
-        try {
-            User loggedInUser = userService.login(loginRequest);
-
-            session.setAttribute(
-                    USER_ID_SESSION_ATTRIBUTE,
-                    loggedInUser.getId()
-            );
-
-            return new ModelAndView("redirect:/");
-        }
-        catch (InvalidLoginCredentialsException exception) {
-            bindingResult.rejectValue(
-                    "usernameOrEmail",
-                    "login.invalid",
-                    exception.getMessage()
-            );
-
-            return new ModelAndView("auth/login");
-        }
-    }
-
-    @PostMapping("/logout")
-    public ModelAndView logout(
-            HttpSession session,
-            RedirectAttributes redirectAttributes
-    ) {
-        session.invalidate();
-
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "You have been logged out successfully.");
-
-        return new ModelAndView("redirect:/auth/login");
-    }
-
-    private boolean isAuthenticated(HttpSession session) {
-        return session.getAttribute(USER_ID_SESSION_ATTRIBUTE) != null;
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
     }
 }

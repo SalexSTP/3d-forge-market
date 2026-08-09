@@ -1,5 +1,6 @@
 package com.aleksandar.threedforgemarket.model.dto.order;
 
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentMethod;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,4 +24,7 @@ public class CreateOrderRequest {
 
     @Size(max = 1000, message = "Order note must not exceed 1000 characters.")
     private String customerNote;
+
+    @NotNull(message = "Please choose a payment method.")
+    private PaymentMethod paymentMethod;
 }

@@ -26,6 +26,7 @@
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Total</th>
+                <th>Payment</th>
                 <th>Delivery address</th>
                 <th>Note</th>
                 <th>Created</th>
@@ -63,6 +64,20 @@
                 <td data-label="Total"
                     th:text="|€${#numbers.formatDecimal(order.totalPrice, 1, 2)}|">
                     €24.00
+                </td>
+
+                <td data-label="Payment">
+                    <span th:if="${order.paymentSummary != null}">
+                        <span th:text="${order.paymentSummary.paymentMethod.displayName}">
+                            Cash on delivery
+                        </span>
+                        <span class="subtle" th:text="${order.paymentSummary.paymentStatus.displayName}">
+                            Pending
+                        </span>
+                    </span>
+                    <span th:if="${order.paymentSummary == null}" class="muted-text">
+                        Not recorded
+                    </span>
                 </td>
 
                 <td data-label="Delivery address"
@@ -116,6 +131,7 @@
                               th:action="@{/admin/orders/{id}/status(id=${order.id})}"
                               method="post">
 
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="_method" value="put">
 
                             <label class="sr-only"
@@ -149,6 +165,7 @@
                               th:action="@{/admin/orders/{id}(id=${order.id})}"
                               method="post"
                               data-confirm="Remove this delivered or cancelled order from the admin history?">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="_method" value="delete">
 
                             <button class="btn btn-small btn-ghost btn-history-delete"
@@ -157,7 +174,13 @@
                             </button>
                         </form>
 
-                        <span th:if="${#lists.isEmpty(order.availableStatusUpdates) and !order.deletable}"
+                        <a th:if="${order.paymentSummary != null and order.paymentSummary.invoiceAvailable}"
+                           class="btn btn-small btn-ghost table-action-btn invoice-action-btn"
+                           th:href="@{/admin/payments/{id}/invoice(id=${order.paymentSummary.paymentTransactionId})}">
+                            Invoice
+                        </a>
+
+                        <span th:if="${#lists.isEmpty(order.availableStatusUpdates) and !order.deletable and (order.paymentSummary == null or !order.paymentSummary.invoiceAvailable)}"
                               class="muted-action">
                             No actions
                         </span>

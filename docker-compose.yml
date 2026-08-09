@@ -1,0 +1,93 @@
+services:
+  main-mysql:
+    image: mysql:8
+    container_name: three-d-forge-main-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: threed_forge_market_db
+      MYSQL_USER: ${DB_USERNAME:-forge_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-forge_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+    volumes:
+      - main-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - forge-network
+
+  custom-print-mysql:
+    image: mysql:8
+    container_name: custom-print-mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: custom_print_service_db
+      MYSQL_USER: ${DB_USERNAME:-forge_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-forge_pass}
+      MYSQL_ROOT_PASSWORD: ${CUSTOM_PRINT_MYSQL_ROOT_PASSWORD:-root_pass}
+    volumes:
+      - custom-print-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - forge-network
+
+  custom-print-service:
+    build:
+      context: ./custom-print-service
+    container_name: custom-print-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://custom-print-mysql:3306/custom_print_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: ${DB_USERNAME:-forge_user}
+      DB_PASSWORD: ${DB_PASSWORD:-forge_pass}
+    depends_on:
+      custom-print-mysql:
+        condition: service_healthy
+    networks:
+      - forge-network
+
+  three-d-forge-market:
+    build:
+      context: ./ThreeDForgeMarket
+    container_name: three-d-forge-market
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://main-mysql:3306/threed_forge_market_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: ${DB_USERNAME:-forge_user}
+      DB_PASSWORD: ${DB_PASSWORD:-forge_pass}
+      CUSTOM_PRINT_SERVICE_BASE_URL: http://custom-print-service:8081
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@3dforgemarket.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123!}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      STRIPE_ENABLED: ${STRIPE_ENABLED:-false}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_CHECKOUT_DISPLAY_NAME: ${STRIPE_CHECKOUT_DISPLAY_NAME:-3DForgeMarket}
+    depends_on:
+      main-mysql:
+        condition: service_healthy
+      custom-print-service:
+        condition: service_started
+    networks:
+      - forge-network
+
+networks:
+  forge-network:
+    driver: bridge
+
+volumes:
+  main-mysql-data:
+  custom-print-mysql-data:

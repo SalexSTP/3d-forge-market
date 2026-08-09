@@ -23,6 +23,7 @@
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Total</th>
+                <th>Payment</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Updated</th>
@@ -41,6 +42,13 @@
                 </td>
                 <td data-label="Quantity" th:text="${order.quantity}">2</td>
                 <td data-label="Total" th:text="|€${#numbers.formatDecimal(order.totalPrice, 1, 2)}|">€36.00</td>
+                <td data-label="Payment">
+                    <span th:if="${order.paymentSummary != null}">
+                        <span th:text="${order.paymentSummary.paymentMethod.displayName}">Cash on delivery</span>
+                        <span class="subtle" th:text="${order.paymentSummary.paymentStatus.displayName}">Pending</span>
+                    </span>
+                    <span th:if="${order.paymentSummary == null}" class="muted-text">Not recorded</span>
+                </td>
                 <td data-label="Status">
                     <span th:class="|status-badge status-${#strings.toLowerCase(order.status.name())}|"
                           th:text="${order.status.displayName}">
@@ -68,6 +76,7 @@
                               th:action="@{/orders/{id}/cancel(id=${order.id})}"
                               method="post"
                               data-confirm="Cancel this order?">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="_method" value="put">
 
                             <button class="btn btn-danger btn-small" type="submit">
@@ -79,6 +88,7 @@
                               th:action="@{/orders/{id}(id=${order.id})}"
                               method="post"
                               data-confirm="Remove this delivered or cancelled order from your history?">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="_method" value="delete">
 
                             <button class="btn btn-danger btn-small" type="submit">
@@ -86,8 +96,14 @@
                             </button>
                         </form>
 
+                        <a th:if="${order.paymentSummary != null and order.paymentSummary.invoiceAvailable}"
+                           class="btn btn-ghost btn-small table-action-btn invoice-action-btn"
+                           th:href="@{/payments/{id}/invoice(id=${order.paymentSummary.paymentTransactionId})}">
+                            Invoice
+                        </a>
+
                         <span class="muted-action"
-                              th:if="${!order.cancellable and !order.deletable}">
+                              th:if="${!order.cancellable and !order.deletable and (order.paymentSummary == null or !order.paymentSummary.invoiceAvailable)}">
                             No actions
                         </span>
                     </div>
