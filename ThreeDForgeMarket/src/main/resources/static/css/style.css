@@ -1320,12 +1320,12 @@ table {
 
 .admin-orders-table th:nth-child(10),
 .admin-orders-table td:nth-child(10) {
-    width: 14%;
+    width: 11%;
 }
 
 .admin-orders-table th:nth-child(11),
 .admin-orders-table td:nth-child(11) {
-    width: 12%;
+    width: 14%;
 }
 
 .admin-orders-table .status-badge {
