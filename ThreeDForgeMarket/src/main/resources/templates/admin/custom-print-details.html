@@ -266,7 +266,6 @@
 
             <div class="card-topline">
                 <h2>Reject request</h2>
-                <button class="btn btn-small btn-ghost" type="button" data-modal-close>Close</button>
             </div>
 
             <div class="field">
@@ -280,9 +279,9 @@
                 <p class="field-error" th:if="${#fields.hasErrors('adminMessage')}" th:errors="*{adminMessage}">Message error.</p>
             </div>
 
-            <div class="action-row">
+            <div class="action-row modal-action-row">
                 <button class="btn btn-danger" type="submit">Reject request</button>
-                <button class="btn btn-ghost" type="button" data-modal-close>Cancel</button>
+                <button class="btn btn-ghost modal-cancel-btn" type="button" data-modal-close>Cancel</button>
             </div>
         </form>
     </dialog>

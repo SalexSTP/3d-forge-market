@@ -1,6 +1,7 @@
 package com.aleksandar.threedforgemarket.model.dto.order;
 
 import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
+import com.aleksandar.threedforgemarket.model.dto.payment.PaymentSummaryDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,6 +30,7 @@ public class AdminOrderListItemDto {
     private final LocalDateTime createdOn;
     private final LocalDateTime updatedOn;
     private final OrderStatus status;
+    private final PaymentSummaryDto paymentSummary;
 
     private final List<OrderStatus> availableStatusUpdates;
     private final boolean deletable;

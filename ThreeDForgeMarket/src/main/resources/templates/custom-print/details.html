@@ -15,7 +15,7 @@
             <p class="eyebrow">Custom print details</p>
             <h1 th:text="${request.title}">Prototype bracket</h1>
         </div>
-        <a class="btn btn-ghost" th:href="@{/custom-prints}">Back to requests</a>
+        <a class="btn btn-ghost custom-print-secondary-link" th:href="@{/custom-prints}">Back to requests</a>
     </section>
 
     <div th:replace="~{fragments/messages :: messages}"></div>
@@ -119,14 +119,11 @@
             </dl>
 
             <div class="custom-print-action-stack">
-                <form th:if="${request.acceptable}"
-                      th:action="@{/custom-prints/{id}/accept(id=${request.id})}"
-                      method="post"
-                      data-confirm="Accept this custom print offer?">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <input type="hidden" name="_method" value="put">
-                    <button class="btn btn-primary btn-wide" type="submit">Accept offer</button>
-                </form>
+                <a th:if="${request.acceptable}"
+                   class="btn btn-primary btn-wide"
+                   th:href="@{/payments/custom-prints/{id}(id=${request.id})}">
+                    Accept offer / choose payment
+                </a>
 
                 <button th:if="${request.changeRequestAllowed}"
                         class="btn btn-secondary btn-wide"
@@ -136,7 +133,7 @@
                 </button>
 
                 <a th:if="${request.editable}"
-                   class="btn btn-ghost btn-wide"
+                   class="btn btn-ghost btn-wide custom-print-secondary-link"
                    th:href="@{/custom-prints/{id}/edit(id=${request.id})}">
                     Edit request
                 </a>

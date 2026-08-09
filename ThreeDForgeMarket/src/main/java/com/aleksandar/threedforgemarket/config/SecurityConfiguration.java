@@ -25,6 +25,7 @@ public class SecurityConfiguration {
             throws Exception {
         return http
                 .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/payments/stripe/webhook").permitAll()
                         .requestMatchers(
                                 "/",
                                 "/auth/**",
@@ -37,12 +38,17 @@ public class SecurityConfiguration {
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/profile", "/profile/**").authenticated()
+                        .requestMatchers("/payments/custom-prints", "/payments/custom-prints/**").hasRole("CUSTOMER")
+                        .requestMatchers("/payments/stripe/success", "/payments/stripe/cancel").hasRole("CUSTOMER")
                         .requestMatchers("/custom-prints", "/custom-prints/**").hasRole("CUSTOMER")
                         .requestMatchers("/admin/custom-prints", "/admin/custom-prints/**").hasRole("ADMIN")
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                         .requestMatchers("/orders", "/orders/**").hasRole("CUSTOMER")
                         .requestMatchers("/reviews", "/reviews/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/payments/stripe/webhook")
                 )
                 .formLogin(formLogin -> formLogin
                         .loginPage("/auth/login")

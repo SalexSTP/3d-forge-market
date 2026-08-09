@@ -9,6 +9,8 @@ import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintFulfill
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintOfferFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintRejectFormDto;
 import com.aleksandar.threedforgemarket.model.dto.customprint.CustomPrintSearchRequest;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
+import com.aleksandar.threedforgemarket.service.payment.PaymentService;
 import com.aleksandar.threedforgemarket.service.customprint.CustomPrintRequestService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -28,9 +30,14 @@ import java.util.UUID;
 @RequestMapping("/admin/custom-prints")
 public class AdminCustomPrintRequestController {
     private final CustomPrintRequestService customPrintRequestService;
+    private final PaymentService paymentService;
 
-    public AdminCustomPrintRequestController(CustomPrintRequestService customPrintRequestService) {
+    public AdminCustomPrintRequestController(
+            CustomPrintRequestService customPrintRequestService,
+            PaymentService paymentService
+    ) {
         this.customPrintRequestService = customPrintRequestService;
+        this.paymentService = paymentService;
     }
 
     @ModelAttribute("statuses")
@@ -209,6 +216,9 @@ public class AdminCustomPrintRequestController {
 
         try {
             customPrintRequestService.updateFulfillmentStatus(id, fulfillmentStatusForm);
+            if (fulfillmentStatusForm.getStatus() == CustomPrintRequestStatus.DELIVERED) {
+                paymentService.markCashOnDeliveryPaidIfPending(PaymentTargetType.CUSTOM_PRINT_REQUEST, id);
+            }
             redirectAttributes.addFlashAttribute(
                     "successMessage",
                     "Custom print status was updated successfully."

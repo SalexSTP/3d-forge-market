@@ -12,6 +12,11 @@ import com.aleksandar.threedforgemarket.model.entity.Product;
 import com.aleksandar.threedforgemarket.model.entity.User;
 import com.aleksandar.threedforgemarket.model.enums.order.OrderStatus;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
+import com.aleksandar.threedforgemarket.model.entity.PaymentTransaction;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentMethod;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentStatus;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
+import com.aleksandar.threedforgemarket.repository.payment.PaymentTransactionRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import com.aleksandar.threedforgemarket.repository.review.ReviewRepository;
 import com.aleksandar.threedforgemarket.repository.user.UserRepository;
@@ -49,12 +54,16 @@ class CustomerOrderServiceTest {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
+
     private User customer;
     private Product product;
 
     @BeforeEach
     void setUp() {
         reviewRepository.deleteAll();
+        paymentTransactionRepository.deleteAll();
         customerOrderRepository.deleteAll();
         productRepository.deleteAll();
         userRepository.deleteAll();
@@ -142,6 +151,26 @@ class CustomerOrderServiceTest {
                 .isEqualTo(OrderStatus.CONFIRMED);
         assertThatThrownBy(() -> customerOrderService.updateOrderStatus(order.getId(), OrderStatus.DELIVERED))
                 .isInstanceOf(OrderStatusUpdateNotAllowedException.class);
+    }
+
+    @Test
+    void deliveredNormalOrderMarksPendingCashPaymentPaid() {
+        CustomerOrder order = customerOrderRepository.save(OrderTestData.order(customer, product, OrderStatus.READY_FOR_DELIVERY));
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.PRODUCT_ORDER)
+                .targetId(order.getId())
+                .amount(new BigDecimal("25.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+
+        customerOrderService.updateOrderStatus(order.getId(), OrderStatus.DELIVERED);
+
+        PaymentTransaction updated = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
+        assertThat(updated.getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(updated.getPaidOn()).isNotNull();
     }
 
     @Test

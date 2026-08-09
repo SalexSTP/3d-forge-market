@@ -36,6 +36,7 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, UU
             @Param("customerId") UUID customerId
     );
 
+    @EntityGraph(attributePaths = {"product", "customer"})
     Optional<CustomerOrder> findByIdAndCustomer_Id(
             UUID orderId,
             UUID customerId

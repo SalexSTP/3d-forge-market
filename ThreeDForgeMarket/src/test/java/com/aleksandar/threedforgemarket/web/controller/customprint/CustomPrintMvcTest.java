@@ -4,6 +4,11 @@ import com.aleksandar.threedforgemarket.exception.customprint.CustomPrintRequest
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestDetailsClientDto;
 import com.aleksandar.threedforgemarket.integration.customprint.CustomPrintRequestStatus;
 import com.aleksandar.threedforgemarket.model.entity.User;
+import com.aleksandar.threedforgemarket.model.entity.PaymentTransaction;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentMethod;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentStatus;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentTargetType;
+import com.aleksandar.threedforgemarket.repository.payment.PaymentTransactionRepository;
 import com.aleksandar.threedforgemarket.repository.order.CustomerOrderRepository;
 import com.aleksandar.threedforgemarket.repository.product.ProductRepository;
 import com.aleksandar.threedforgemarket.repository.review.ReviewRepository;
@@ -25,11 +30,13 @@ import java.util.UUID;
 
 import static com.aleksandar.threedforgemarket.testsecurity.MarketplaceSecurityTestSupport.admin;
 import static com.aleksandar.threedforgemarket.testsecurity.MarketplaceSecurityTestSupport.customer;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -63,6 +70,9 @@ class CustomPrintMvcTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
+
     private User customer;
     private User admin;
     private UUID requestId;
@@ -70,6 +80,7 @@ class CustomPrintMvcTest {
     @BeforeEach
     void setUp() {
         reviewRepository.deleteAll();
+        paymentTransactionRepository.deleteAll();
         customerOrderRepository.deleteAll();
         productRepository.deleteAll();
         userRepository.deleteAll();
@@ -171,7 +182,7 @@ class CustomPrintMvcTest {
                         .with(customer(customer.getId()))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/custom-prints/" + requestId));
+                .andExpect(redirectedUrl("/payments/custom-prints/" + requestId));
 
         mockMvc.perform(put("/custom-prints/{id}/request-changes", requestId)
                         .with(customer(customer.getId()))
@@ -189,7 +200,7 @@ class CustomPrintMvcTest {
         verify(customPrintRequestService).createCustomerRequest(eq(customer.getId()), any());
         verify(customPrintRequestService).updateCustomerRequest(eq(customer.getId()), eq(requestId), any());
         verify(customPrintRequestService).cancelCustomerRequest(customer.getId(), requestId);
-        verify(customPrintRequestService).acceptOffer(customer.getId(), requestId);
+        verify(customPrintRequestService, never()).acceptOffer(customer.getId(), requestId);
         verify(customPrintRequestService).requestChanges(eq(customer.getId()), eq(requestId), any());
         verify(customPrintRequestService).hideCustomerRequest(customer.getId(), requestId);
     }
@@ -271,6 +282,139 @@ class CustomPrintMvcTest {
         verify(customPrintRequestService).rejectRequest(eq(requestId), any());
         verify(customPrintRequestService).updateFulfillmentStatus(eq(requestId), any());
         verify(customPrintRequestService).archiveRequest(requestId);
+    }
+
+    @Test
+    void customPrintOfferPaymentPageRequiresCustomerRoleAndOfferSent() throws Exception {
+        when(customPrintRequestService.getCustomerRequestDetails(customer.getId(), requestId))
+                .thenReturn(details(CustomPrintRequestStatus.OFFER_SENT));
+
+        mockMvc.perform(get("/payments/custom-prints/{id}", requestId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/auth/login"));
+
+        mockMvc.perform(get("/payments/custom-prints/{id}", requestId).with(admin(admin.getId())))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/payments/custom-prints/{id}", requestId).with(customer(customer.getId())))
+                .andExpect(status().isOk())
+                .andExpect(view().name("payment/custom-print"))
+                .andExpect(content().string(containsString("Choose payment")));
+
+        UUID acceptedRequestId = UUID.randomUUID();
+        when(customPrintRequestService.getCustomerRequestDetails(customer.getId(), acceptedRequestId))
+                .thenReturn(CustomPrintClientTestData.details(
+                        acceptedRequestId,
+                        customer.getId(),
+                        CustomPrintRequestStatus.ACCEPTED
+                ));
+
+        mockMvc.perform(get("/payments/custom-prints/{id}", acceptedRequestId).with(customer(customer.getId())))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/custom-prints/" + acceptedRequestId));
+    }
+
+    @Test
+    void customPrintCashPaymentSubmitsWithCsrfAndCreatesTransaction() throws Exception {
+        when(customPrintRequestService.getCustomerRequestDetails(customer.getId(), requestId))
+                .thenReturn(details(CustomPrintRequestStatus.OFFER_SENT));
+
+        mockMvc.perform(post("/payments/custom-prints/{id}", requestId)
+                        .with(customer(customer.getId()))
+                        .with(csrf())
+                        .param("paymentMethod", "CASH_ON_DELIVERY"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/custom-prints/" + requestId));
+
+        assertThat(paymentTransactionRepository.findAll())
+                .singleElement()
+                .satisfies(transaction -> {
+                    assertThat(transaction.getTargetId()).isEqualTo(requestId);
+                    assertThat(transaction.getAmount()).isEqualByComparingTo("35.00");
+                    assertThat(transaction.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING_CASH_ON_DELIVERY);
+                });
+        verify(customPrintRequestService).acceptOffer(customer.getId(), requestId);
+    }
+
+    @Test
+    void stripeWebhookEndpointIsPermitAllAndInvalidSignatureReturnsBadRequestWithoutCsrf() throws Exception {
+        mockMvc.perform(post("/payments/stripe/webhook")
+                        .content("{}")
+                        .header("Stripe-Signature", "invalid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void customPrintStripeCancelMarksPaymentCancelledAndDoesNotAcceptOffer() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.STRIPE_CHECKOUT)
+                .paymentStatus(PaymentStatus.PENDING)
+                .build());
+
+        mockMvc.perform(get("/payments/stripe/cancel")
+                        .with(customer(customer.getId()))
+                        .param("paymentTransactionId", paymentTransaction.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/payments/custom-prints/" + requestId));
+
+        PaymentTransaction updated = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
+        assertThat(updated.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(updated.getCancelledOn()).isNotNull();
+        verify(customPrintRequestService, never()).acceptOffer(customer.getId(), requestId);
+    }
+
+    @Test
+    void customPrintStripeSuccessRedirectsToDetailsWithoutAcceptingOfferDirectly() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.STRIPE_CHECKOUT)
+                .paymentStatus(PaymentStatus.PENDING)
+                .stripeCheckoutSessionId("cs_test_custom_success")
+                .build());
+
+        mockMvc.perform(get("/payments/stripe/success")
+                        .with(customer(customer.getId()))
+                        .param("session_id", "cs_test_custom_success"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/custom-prints/" + requestId));
+
+        PaymentTransaction unchangedPayment = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
+        assertThat(unchangedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(unchangedPayment.getPaidOn()).isNull();
+        verify(customPrintRequestService, never()).acceptOffer(customer.getId(), requestId);
+    }
+
+    @Test
+    void deliveredCustomPrintMarksPendingCashPaymentPaid() throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository.save(PaymentTransaction.builder()
+                .customerId(customer.getId())
+                .targetType(PaymentTargetType.CUSTOM_PRINT_REQUEST)
+                .targetId(requestId)
+                .amount(new java.math.BigDecimal("35.00"))
+                .currency("eur")
+                .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
+                .paymentStatus(PaymentStatus.PENDING_CASH_ON_DELIVERY)
+                .build());
+
+        mockMvc.perform(put("/admin/custom-prints/{id}/fulfillment-status", requestId)
+                        .with(admin(admin.getId()))
+                        .with(csrf())
+                        .param("status", CustomPrintRequestStatus.DELIVERED.name()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/custom-prints/" + requestId));
+
+        PaymentTransaction updated = paymentTransactionRepository.findById(paymentTransaction.getId()).orElseThrow();
+        assertThat(updated.getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(updated.getPaidOn()).isNotNull();
     }
 
     @Test

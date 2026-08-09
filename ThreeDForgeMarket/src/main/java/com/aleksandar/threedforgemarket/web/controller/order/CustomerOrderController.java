@@ -5,15 +5,22 @@ import com.aleksandar.threedforgemarket.exception.order.OrderCancellationNotAllo
 import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
+import com.aleksandar.threedforgemarket.exception.payment.PaymentOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.payment.StripePaymentUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
+import com.aleksandar.threedforgemarket.model.dto.order.CreatedOrderDto;
 import com.aleksandar.threedforgemarket.model.dto.order.CreateOrderRequest;
+import com.aleksandar.threedforgemarket.model.dto.payment.PaymentStartResult;
+import com.aleksandar.threedforgemarket.model.enums.payment.PaymentMethod;
 import com.aleksandar.threedforgemarket.model.dto.product.ProductDetailsDto;
 import com.aleksandar.threedforgemarket.security.MarketplaceUserDetails;
 import com.aleksandar.threedforgemarket.service.order.CustomerOrderService;
+import com.aleksandar.threedforgemarket.service.payment.PaymentService;
 import com.aleksandar.threedforgemarket.service.product.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,23 +35,35 @@ public class CustomerOrderController {
 
     private final CustomerOrderService customerOrderService;
     private final ProductService productService;
+    private final PaymentService paymentService;
 
     public CustomerOrderController(
             CustomerOrderService customerOrderService,
-            ProductService productService
+            ProductService productService,
+            PaymentService paymentService
     ) {
         this.customerOrderService = customerOrderService;
         this.productService = productService;
+        this.paymentService = paymentService;
     }
 
     @GetMapping("/create")
     public ModelAndView getCreateOrderPage(
             @RequestParam UUID productId,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
-        CreateOrderRequest orderForm = new CreateOrderRequest();
-        orderForm.setProductId(productId);
-        orderForm.setQuantity(1);
+        CreateOrderRequest orderForm;
+
+        if (model.containsAttribute("orderForm")) {
+            orderForm = (CreateOrderRequest) model.asMap().get("orderForm");
+            orderForm.setProductId(productId);
+        } else {
+            orderForm = new CreateOrderRequest();
+            orderForm.setProductId(productId);
+            orderForm.setQuantity(1);
+            orderForm.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY);
+        }
 
         try {
             return createOrderFormModelAndView(orderForm);
@@ -89,18 +108,45 @@ public class CustomerOrderController {
             }
         }
 
+        if (orderForm.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT
+                && !paymentService.isStripeCheckoutAvailable()) {
+            bindingResult.rejectValue(
+                    "paymentMethod",
+                    "paymentMethod.stripeUnavailable",
+                    "Online payments are currently unavailable."
+            );
+
+            try {
+                return createOrderFormModelAndView(orderForm);
+            } catch (ProductNotFoundException exception) {
+                redirectAttributes.addFlashAttribute(
+                        "errorMessage",
+                        "This product is no longer available for ordering."
+                );
+
+                return new ModelAndView("redirect:/products");
+            }
+        }
+
         try {
-            customerOrderService.createOrder(
+            CreatedOrderDto order = customerOrderService.createOrder(
                     currentUser.getId(),
                     orderForm
             );
 
-            redirectAttributes.addFlashAttribute(
-                    "successMessage",
-                    "Your order was placed successfully."
+            PaymentStartResult paymentStartResult = paymentService.startProductOrderPayment(
+                    order,
+                    orderForm.getPaymentMethod()
             );
 
-            return new ModelAndView("redirect:/orders/my");
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    orderForm.getPaymentMethod() == PaymentMethod.STRIPE_CHECKOUT
+                            ? "Your order was placed. Complete payment in Stripe Checkout."
+                            : "Your order was placed successfully."
+            );
+
+            return new ModelAndView("redirect:" + paymentStartResult.redirectUrl());
 
         } catch (ProductUnavailableException | ProductNotFoundException exception) {
             redirectAttributes.addFlashAttribute(
@@ -117,10 +163,13 @@ public class CustomerOrderController {
             );
 
             return new ModelAndView("redirect:/");
+        } catch (StripePaymentUnavailableException | PaymentOperationFailedException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+            return new ModelAndView("redirect:/orders/my");
         }
     }
 
-    @GetMapping("/my")
+    @GetMapping({"", "/my"})
     public ModelAndView getMyOrdersPage(
             @AuthenticationPrincipal MarketplaceUserDetails currentUser
     ) {
@@ -213,6 +262,8 @@ public class CustomerOrderController {
         modelAndView.addObject("product", product);
         modelAndView.addObject("orderForm", orderForm);
         modelAndView.addObject("calculatedTotal", calculatedTotal);
+        modelAndView.addObject("paymentMethods", PaymentMethod.values());
+        modelAndView.addObject("stripeAvailable", paymentService.isStripeCheckoutAvailable());
 
         return modelAndView;
     }

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment cancelled | 3DForgeMarket</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="narrow-page">
+    <section class="empty-state">
+        <p class="eyebrow">Stripe Checkout</p>
+        <h1>Payment was cancelled.</h1>
+        <p>No online payment was completed. You can try again where the offer or order is still eligible.</p>
+        <div class="action-row">
+            <a class="btn btn-primary" th:href="@{/orders/my}">View orders</a>
+            <a class="btn btn-ghost" th:href="@{/custom-prints}">View custom prints</a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -231,18 +231,7 @@ public class CustomPrintRequestController {
             @AuthenticationPrincipal MarketplaceUserDetails currentUser,
             RedirectAttributes redirectAttributes
     ) {
-        try {
-            customPrintRequestService.acceptOffer(currentUser.getId(), id);
-            redirectAttributes.addFlashAttribute("successMessage", "The custom print offer was accepted.");
-        } catch (CustomPrintRequestNotFoundException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", "That custom print request could not be found.");
-        } catch (CustomPrintRequestOperationFailedException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", "This offer can no longer be accepted.");
-        } catch (CustomPrintServiceUnavailableException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
-        }
-
-        return new ModelAndView("redirect:/custom-prints/" + id);
+        return new ModelAndView("redirect:/payments/custom-prints/" + id);
     }
 
     @PutMapping("/{id}/request-changes")

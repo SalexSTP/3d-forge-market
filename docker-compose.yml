@@ -71,6 +71,11 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@3dforgemarket.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123!}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      STRIPE_ENABLED: ${STRIPE_ENABLED:-false}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_CHECKOUT_DISPLAY_NAME: ${STRIPE_CHECKOUT_DISPLAY_NAME:-3DForgeMarket}
     depends_on:
       main-mysql:
         condition: service_healthy

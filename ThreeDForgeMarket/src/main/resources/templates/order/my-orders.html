@@ -23,6 +23,7 @@
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Total</th>
+                <th>Payment</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Updated</th>
@@ -41,6 +42,13 @@
                 </td>
                 <td data-label="Quantity" th:text="${order.quantity}">2</td>
                 <td data-label="Total" th:text="|€${#numbers.formatDecimal(order.totalPrice, 1, 2)}|">€36.00</td>
+                <td data-label="Payment">
+                    <span th:if="${order.paymentSummary != null}">
+                        <span th:text="${order.paymentSummary.paymentMethod.displayName}">Cash on delivery</span>
+                        <span class="subtle" th:text="${order.paymentSummary.paymentStatus.displayName}">Pending</span>
+                    </span>
+                    <span th:if="${order.paymentSummary == null}" class="muted-text">Not recorded</span>
+                </td>
                 <td data-label="Status">
                     <span th:class="|status-badge status-${#strings.toLowerCase(order.status.name())}|"
                           th:text="${order.status.displayName}">

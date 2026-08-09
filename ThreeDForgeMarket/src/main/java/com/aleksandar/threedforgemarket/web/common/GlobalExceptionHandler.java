@@ -10,6 +10,8 @@ import com.aleksandar.threedforgemarket.exception.order.OrderCreationNotAllowedE
 import com.aleksandar.threedforgemarket.exception.order.OrderDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.OrderStatusUpdateNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.order.ProductUnavailableException;
+import com.aleksandar.threedforgemarket.exception.payment.PaymentOperationFailedException;
+import com.aleksandar.threedforgemarket.exception.payment.StripePaymentUnavailableException;
 import com.aleksandar.threedforgemarket.exception.product.ProductDeletionNotAllowedException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNameAlreadyExistsException;
 import com.aleksandar.threedforgemarket.exception.product.ProductNotFoundException;
@@ -75,7 +77,9 @@ public class GlobalExceptionHandler {
             ProductNameAlreadyExistsException.class,
             ReviewAlreadyExistsException.class,
             ReviewEligibilityNotMetException.class,
-            CustomPrintRequestOperationFailedException.class
+            CustomPrintRequestOperationFailedException.class,
+            PaymentOperationFailedException.class,
+            StripePaymentUnavailableException.class
     })
     public ModelAndView handleDomainConflict() {
         return errorView("error/409", HttpStatus.CONFLICT);
